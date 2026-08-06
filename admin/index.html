@@ -45,6 +45,15 @@ input:focus,select:focus{border-color:rgba(217,165,63,.55)}
   font-size:13px;cursor:pointer;transition:.15s}
 .filebox:hover{border-color:var(--gold)}
 .filebox.has{border-style:solid;border-color:rgba(12,163,12,.5);color:#9fdc9f}
+.mat-chip{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--ring);
+  border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink-2)}
+.mat-chip .tag{font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:5px;text-transform:uppercase}
+.mat-chip .tag.arq{background:rgba(57,135,229,.16);color:#8fc0f5}
+.mat-chip .tag.link{background:rgba(217,165,63,.16);color:var(--gold)}
+.mat-chip .tag.novo{background:rgba(12,163,12,.16);color:#8fe08f}
+.mat-chip .nome{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mat-chip button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:15px;padding:0 2px}
+.mat-chip button:hover{color:#ff8d8d}
 .btn{background:var(--gold);border:0;color:#161204;font-weight:700;font-family:var(--body);font-size:14px;
   padding:12px 22px;border-radius:9px;cursor:pointer;transition:.15s}
 .btn:hover{filter:brightness(1.08)}
@@ -141,14 +150,15 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
             <button type="button" id="med-pag" onclick="setMedium('pago')">Pago</button>
           </div>
         </div>
-        <div class="row">
-          <label>Material (PDF até ~20MB)</label>
-          <div class="filebox" id="filebox" onclick="document.getElementById('f-file').click()">Clique para escolher o arquivo</div>
-          <input id="f-file" type="file" accept=".pdf,.zip,.doc,.docx,.ppt,.pptx" style="display:none">
-        </div>
-        <div class="row">
-          <label>ou link externo do material</label>
-          <input id="f-url-ext" placeholder="https:// (opcional se enviar arquivo)">
+        <div class="row" style="grid-column:span 2">
+          <label>Materiais da aula — cada um vira um botão de download</label>
+          <div class="filebox" id="filebox" onclick="document.getElementById('f-file').click()">+ Adicionar arquivo(s) · PDF até ~20MB cada</div>
+          <input id="f-file" type="file" multiple accept=".pdf,.zip,.doc,.docx,.ppt,.pptx,.xls,.xlsx" style="display:none">
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="f-url-ext" placeholder="ou cole um link externo (https://…)" style="flex:1">
+            <button type="button" class="btn-ghost" onclick="addUrlMat()">+ Link</button>
+          </div>
+          <div id="mat-list" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
         </div>
       </div>
       <div style="margin:4px 0 10px;color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">UTMs personalizadas — auto se em branco</div>
@@ -306,6 +316,49 @@ const $ = (id) => document.getElementById(id);
 
 let TOKEN = new URLSearchParams(location.search).get("k") || localStorage.getItem("gp_token") || "";
 let mentorias = [], paginas = [], redirects = [], editId = null, editRedirectId = null, medium = "organico";
+let materiaisByPagina = {}, pendMats = [];
+
+function renderMats() {
+  const list = $("mat-list");
+  const existentes = editId ? (materiaisByPagina[editId] || []) : [];
+  list.innerHTML =
+    existentes.map(m => `
+      <div class="mat-chip">
+        <span class="tag ${m.material_path ? "arq" : "link"}">${m.material_path ? "arquivo" : "link"}</span>
+        <span class="nome">${m.titulo}</span>
+        <button title="Excluir material" onclick="delMat('${m.id}')">✕</button>
+      </div>`).join("") +
+    pendMats.map((m, i) => `
+      <div class="mat-chip">
+        <span class="tag novo">novo</span>
+        <span class="tag ${m.tipo === "file" ? "arq" : "link"}">${m.tipo === "file" ? "arquivo" : "link"}</span>
+        <span class="nome">${m.tipo === "file" ? m.file.name : m.titulo + " — " + m.url}</span>
+        <button title="Remover" onclick="rmPend(${i})">✕</button>
+      </div>`).join("");
+  $("filebox").className = "filebox" + ((existentes.length + pendMats.length) ? " has" : "");
+}
+
+function rmPend(i) { pendMats.splice(i, 1); renderMats(); }
+
+function addUrlMat() {
+  const u = $("f-url-ext").value.trim();
+  if (!/^https?:\/\//.test(u)) { showMsg(false, "Cole um link válido começando com https://"); return; }
+  const titulo = (prompt("Nome do botão para este material:", "Material da aula") || "Material da aula").trim();
+  pendMats.push({ tipo: "url", url: u, titulo });
+  $("f-url-ext").value = "";
+  renderMats();
+}
+
+async function delMat(id) {
+  if (!confirm("Excluir este material da página?")) return;
+  try {
+    await api(null, { op: "admin_material_delete", id });
+    if (editId && materiaisByPagina[editId]) {
+      materiaisByPagina[editId] = materiaisByPagina[editId].filter(m => m.id !== id);
+    }
+    renderMats();
+  } catch (e) { showMsg(false, e.message); }
+}
 
 function setTab(t) {
   document.getElementById("sec-paginas").style.display = t === "paginas" ? "block" : "none";
@@ -373,7 +426,6 @@ function showMsg(ok, text) {
 
 async function save() {
   const btn = $("btn-save");
-  const file = $("f-file").files[0];
   const pagina = {
     id: editId || undefined,
     titulo: $("f-titulo").value,
@@ -387,30 +439,40 @@ async function save() {
     utm_term: $("f-utm-term").value,
     utm_content: $("f-utm-content").value,
     anne_prefill: $("f-prefill").value,
-    material_url_externa: $("f-url-ext").value,
   };
   if (!pagina.titulo || !pagina.disciplina || !pagina.professor || !pagina.concurso || !pagina.product_id) {
     showMsg(false, "Preencha título, disciplina, professor, concurso e mentoria."); return;
   }
-  if (!editId && !file && !pagina.material_url_externa) {
-    showMsg(false, "Envie o arquivo do material ou informe o link externo."); return;
+  const existentes = editId ? (materiaisByPagina[editId] || []).length : 0;
+  if (!existentes && !pendMats.length) {
+    showMsg(false, "Adicione pelo menos um material (arquivo ou link externo)."); return;
+  }
+  for (const m of pendMats) {
+    if (m.tipo === "file" && m.file.size > 20 * 1024 * 1024) {
+      showMsg(false, '"' + m.file.name + '" passa de 20MB — use link externo para este material.'); return;
+    }
   }
   btn.disabled = true;
   try {
     const r = await api(null, { op: "admin_save", pagina });
     const saved = r.pagina;
-    if (file) {
+    for (let i = 0; i < pendMats.length; i++) {
+      const m = pendMats[i];
+      $("loading-bar").textContent = "Enviando material " + (i + 1) + " de " + pendMats.length + "…";
       $("loading-bar").style.display = "block";
-      if (file.size > 20 * 1024 * 1024) throw new Error("arquivo acima de 20MB — use link externo");
-      const b64 = await new Promise((res, rej) => {
-        const fr = new FileReader();
-        fr.onload = () => res(String(fr.result).split(",")[1]);
-        fr.onerror = rej;
-        fr.readAsDataURL(file);
-      });
-      await api(null, { op: "admin_upload", pagina_id: saved.id, filename: file.name, content_base64: b64, content_type: file.type || "application/pdf" });
-      $("loading-bar").style.display = "none";
+      if (m.tipo === "file") {
+        const b64 = await new Promise((res, rej) => {
+          const fr = new FileReader();
+          fr.onload = () => res(String(fr.result).split(",")[1]);
+          fr.onerror = rej;
+          fr.readAsDataURL(m.file);
+        });
+        await api(null, { op: "admin_upload", pagina_id: saved.id, filename: m.file.name, content_base64: b64, content_type: m.file.type || "application/pdf", ordem: existentes + i });
+      } else {
+        await api(null, { op: "admin_material_url", pagina_id: saved.id, titulo: m.titulo, url: m.url, ordem: existentes + i });
+      }
     }
+    $("loading-bar").style.display = "none";
     showMsg(true, editId ? "Página atualizada!" : "Página criada!");
     $("link-out").textContent = pageLink(saved);
     $("linkbox").style.display = "block";
@@ -432,8 +494,8 @@ function resetForm(clearLink = true) {
   editId = null;
   ["f-titulo","f-disciplina","f-professor","f-concurso","f-utm-source","f-utm-medium","f-utm-campaign","f-utm-term","f-utm-content","f-prefill","f-url-ext"].forEach(id => $(id).value = "");
   $("f-file").value = "";
-  $("filebox").className = "filebox";
-  $("filebox").textContent = "Clique para escolher o arquivo";
+  pendMats = [];
+  renderMats();
   setMedium("organico");
   $("form-title").textContent = "Nova página de aula";
   $("btn-save").textContent = "GERAR PÁGINA";
@@ -452,7 +514,8 @@ function edit(id) {
   $("f-utm-campaign").value = p.utm_campaign || ""; $("f-prefill").value = p.anne_prefill || "";
   $("f-utm-term").value = p.utm_term === "mkt" ? "" : (p.utm_term || "");
   $("f-utm-content").value = p.utm_content === p.slug ? "" : (p.utm_content || "");
-  $("f-url-ext").value = p.material_url_externa || "";
+  $("f-url-ext").value = "";
+  pendMats = [];
   if (p.utm_medium === "pago" || p.utm_medium === "organico") {
     $("f-utm-medium").value = "";
     setMedium(p.utm_medium);
@@ -460,7 +523,7 @@ function edit(id) {
     $("f-utm-medium").value = p.utm_medium || "";
     setMedium("organico");
   }
-  if (p.material_filename) { $("filebox").className = "filebox has"; $("filebox").textContent = "✓ " + p.material_filename + " (clique p/ trocar)"; }
+  renderMats();
   $("form-title").textContent = "Editando: " + p.titulo;
   $("btn-save").textContent = "SALVAR ALTERAÇÕES";
   $("btn-cancel").style.display = "inline-block";
@@ -678,13 +741,18 @@ async function load() {
   mentorias = r.mentorias || [];
   paginas = r.paginas || [];
   redirects = r.redirects || [];
+  materiaisByPagina = {};
+  (r.materiais || []).slice().reverse().forEach(m => {
+    (materiaisByPagina[m.pagina_id] = materiaisByPagina[m.pagina_id] || []).push(m);
+  });
   render();
   renderRedirects();
 }
 
 $("f-file").addEventListener("change", () => {
-  const f = $("f-file").files[0];
-  if (f) { $("filebox").className = "filebox has"; $("filebox").textContent = "✓ " + f.name; }
+  for (const f of $("f-file").files) pendMats.push({ tipo: "file", file: f });
+  $("f-file").value = "";
+  renderMats();
 });
 
 async function boot() {

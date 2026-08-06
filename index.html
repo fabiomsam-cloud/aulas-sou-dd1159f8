@@ -79,6 +79,9 @@ input.err{border-color:#d84343;background:#fff7f7}
 .btn-dl,.btn-anne{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:12px;
   font-family:inherit;font-size:16px;font-weight:800;padding:16px;cursor:pointer;text-decoration:none;color:#fff;transition:.15s}
 .btn-dl{background:linear-gradient(180deg,var(--cyan-bright),var(--cyan));box-shadow:0 10px 24px rgba(0,136,171,.35)}
+#dl-list .btn-dl{margin-top:10px}
+#dl-list .btn-dl:first-child{margin-top:0}
+#dl-list .btn-dl span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-dl:hover{transform:translateY(-1px)}
 .btn-anne{background:linear-gradient(180deg,var(--wa),var(--wa-deep));box-shadow:0 10px 24px rgba(37,211,102,.30);margin-top:12px}
 .btn-anne:hover{transform:translateY(-1px)}
@@ -163,10 +166,7 @@ footer a{color:#9fc4cf;text-decoration:none}
           </div>
           <h2>Cadastro confirmado!</h2>
           <p class="sub">Seu material está liberado. Bons estudos!</p>
-          <button class="btn-dl" id="btn-dl">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            BAIXAR MATERIAL DA AULA
-          </button>
+          <div id="dl-list"></div>
           <div class="divider">E DEPOIS</div>
           <a class="btn-anne" id="btn-anne" target="_blank" rel="noopener">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.66 15L2 22l5.16-1.32A10 10 0 1 0 12 2zm5.42 14.13c-.23.65-1.35 1.24-1.86 1.28-.5.05-.97.24-3.27-.68-2.77-1.1-4.53-3.94-4.67-4.12-.13-.18-1.11-1.48-1.11-2.83 0-1.35.7-2.01.96-2.29.25-.27.55-.34.73-.34.18 0 .37 0 .53.01.17.01.4-.06.62.48.23.55.78 1.9.85 2.04.07.14.11.3.02.48-.09.18-.13.29-.27.45-.13.16-.28.35-.4.47-.13.13-.27.28-.12.54.15.27.68 1.12 1.46 1.81 1 .9 1.85 1.17 2.11 1.3.27.14.42.11.58-.07.15-.18.66-.77.84-1.04.18-.27.36-.22.6-.13.25.09 1.58.75 1.85.88.27.14.45.2.52.31.06.12.06.67-.17 1.32z"/></svg>
@@ -204,9 +204,32 @@ async function api(params, body) {
   return data;
 }
 
+const DL_ICON = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+async function baixar(btn, materialId) {
+  btn.disabled = true;
+  try {
+    const r = await api(null, { op: "download", registro_id: registroId, material_id: materialId });
+    const a = document.createElement("a");
+    a.href = r.download_url; a.rel = "noopener";
+    document.body.appendChild(a); a.click(); a.remove();
+  } catch (e) { alert("Material temporariamente indisponível. Tente de novo em instantes."); }
+  btn.disabled = false;
+}
+
 function showSuccess() {
   $("form").style.display = "none";
   $("success").style.display = "block";
+  const mats = (pagina && pagina.materiais) || [];
+  const list = $("dl-list");
+  list.innerHTML = "";
+  mats.forEach((m) => {
+    const b = document.createElement("button");
+    b.className = "btn-dl";
+    b.innerHTML = DL_ICON + "<span>BAIXAR " + (mats.length === 1 ? "MATERIAL DA AULA" : "— " + m.titulo.toUpperCase()) + "</span>";
+    b.addEventListener("click", () => baixar(b, m.id));
+    list.appendChild(b);
+  });
   $("btn-anne").href = anneHref || "#";
   $("anne-note").textContent = "A Anne é a consultora de aprovação do Grupo SOU no WhatsApp — ela monta com você um plano de estudos para " + (pagina.concurso || "o seu concurso") + ".";
 }
@@ -268,6 +291,7 @@ $("form").addEventListener("submit", async (ev) => {
   try {
     const r = await api(null, { op: "lead", slug, nome, email, telefone: whats, escolaridade: esc, utm });
     registroId = r.registro_id; anneHref = r.anne_url;
+    if (r.materiais) pagina.materiais = r.materiais;
     localStorage.setItem("scvp_aula_" + slug, JSON.stringify({ r: registroId, a: anneHref }));
     showSuccess();
   } catch (e) {
@@ -276,18 +300,6 @@ $("form").addEventListener("submit", async (ev) => {
     $("form-msg").style.display = "block";
   }
   btn.disabled = false; btn.textContent = "QUERO O MATERIAL";
-});
-
-$("btn-dl").addEventListener("click", async () => {
-  const b = $("btn-dl");
-  b.disabled = true;
-  try {
-    const r = await api(null, { op: "download", registro_id: registroId });
-    const a = document.createElement("a");
-    a.href = r.download_url; a.rel = "noopener";
-    document.body.appendChild(a); a.click(); a.remove();
-  } catch (e) { alert("Material temporariamente indisponível. Tente de novo em instantes."); }
-  b.disabled = false;
 });
 
 $("btn-anne").addEventListener("click", () => {
