@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>SOU · Gerador de Páginas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#212120;
+  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+  --ring:rgba(255,255,255,.10);
+  --gold:#d9a53f; --gold-soft:rgba(217,165,63,.14);
+  --good:#0ca30c; --bad:#d03b3b; --cyan:#3987e5;
+  --disp:"Bricolage Grotesque",sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(1100px 480px at 78% -8%, rgba(217,165,63,.09), transparent 60%)}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:28px 28px 90px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+h1{font-family:var(--disp);font-weight:800;font-size:28px;letter-spacing:-.5px}
+h1 em{font-style:normal;color:var(--gold)}
+.sub{color:var(--muted);font-size:12.5px;margin-top:6px}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:22px;margin-bottom:16px}
+.card h2{font-family:var(--disp);font-weight:700;font-size:17px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:0 0 5px;font-weight:600}
+input,select{width:100%;background:var(--surface-2);border:1px solid var(--ring);border-radius:9px;color:var(--ink);
+  font-family:var(--body);font-size:13.5px;padding:10px 12px;outline:none;color-scheme:dark}
+input:focus,select:focus{border-color:rgba(217,165,63,.55)}
+.hintline{color:var(--muted);font-size:11.5px;margin-top:4px}
+.row{margin-bottom:14px}
+.radio-row{display:flex;gap:8px}
+.radio-row button{flex:1;background:var(--surface-2);border:1px solid var(--ring);border-radius:9px;color:var(--ink-2);
+  font-family:var(--body);font-size:13px;font-weight:600;padding:10px;cursor:pointer}
+.radio-row button.on{background:var(--gold);color:#161204;border-color:var(--gold)}
+.filebox{border:1.5px dashed rgba(255,255,255,.22);border-radius:10px;padding:14px;text-align:center;color:var(--ink-2);
+  font-size:13px;cursor:pointer;transition:.15s}
+.filebox:hover{border-color:var(--gold)}
+.filebox.has{border-style:solid;border-color:rgba(12,163,12,.5);color:#9fdc9f}
+.btn{background:var(--gold);border:0;color:#161204;font-weight:700;font-family:var(--body);font-size:14px;
+  padding:12px 22px;border-radius:9px;cursor:pointer;transition:.15s}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn-ghost{background:transparent;border:1px solid var(--ring);color:var(--ink-2);font-weight:600;font-size:12.5px;
+  padding:7px 12px;border-radius:8px;cursor:pointer}
+.btn-ghost:hover{color:var(--ink);border-color:rgba(255,255,255,.3)}
+.btn-ghost.danger:hover{color:#ff8d8d;border-color:rgba(208,59,59,.6)}
+.msg{display:none;margin-top:12px;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:600}
+.msg.ok{background:rgba(12,163,12,.12);border:1px solid rgba(12,163,12,.4);color:#8fe08f}
+.msg.err{background:rgba(208,59,59,.12);border:1px solid rgba(208,59,59,.4);color:#ff9d9d}
+.linkbox{display:none;margin-top:14px;background:var(--surface-2);border:1px solid rgba(217,165,63,.4);border-radius:10px;padding:14px}
+.linkbox .lbl{color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.linkbox code{display:block;color:var(--ink-2);font-size:12px;word-break:break-all;line-height:1.5}
+.linkbox .actions{margin-top:10px;display:flex;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;text-align:left;
+  padding:10px 10px;border-bottom:1px solid var(--ring);white-space:nowrap}
+tbody td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--ink-2);vertical-align:middle}
+tbody td.num{font-variant-numeric:tabular-nums;text-align:right}
+thead th.num{text-align:right}
+tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+.pill.ativa{background:rgba(12,163,12,.14);color:#8fe08f}
+.pill.pausada{background:rgba(208,59,59,.14);color:#ff9d9d}
+.tbl-actions{display:flex;gap:6px;flex-wrap:wrap}
+.tbl-wrap{overflow-x:auto}
+.muted-note{color:var(--muted);font-size:12px;margin-top:10px}
+.lock{max-width:420px;margin:120px auto;text-align:center}
+.lock input{margin:14px 0}
+#loading-bar{display:none;color:var(--muted);font-size:12.5px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" class="lock" style="display:none">
+    <h1>Gerador de <em>Páginas</em></h1>
+    <p class="sub">Cole o token de acesso para entrar.</p>
+    <input id="tok" type="password" placeholder="token">
+    <button class="btn" onclick="saveTok()">ENTRAR</button>
+  </div>
+
+  <div id="app" style="display:none">
+    <header>
+      <div>
+        <h1>Gerador de <em>Páginas</em></h1>
+        <div class="sub">Aulas do YouTube · material da aula · lead → Data Core → Anne</div>
+      </div>
+      <button class="btn-ghost" onclick="load()">↻ Atualizar</button>
+    </header>
+
+    <div class="card">
+      <h2 id="form-title">Nova página de aula</h2>
+      <div class="grid2">
+        <div class="row">
+          <label>Título da aula</label>
+          <input id="f-titulo" placeholder="Ex.: Aula de Conhecimentos Pedagógicos — Tendências">
+        </div>
+        <div class="row">
+          <label>Disciplina</label>
+          <input id="f-disciplina" placeholder="Ex.: Conhecimentos Pedagógicos">
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="row">
+          <label>Professor</label>
+          <input id="f-professor" placeholder="Ex.: Maria Souza">
+        </div>
+        <div class="row">
+          <label>Concurso público</label>
+          <input id="f-concurso" placeholder="Ex.: SEDUC-AM">
+        </div>
+        <div class="row">
+          <label>Mentoria Elite</label>
+          <select id="f-mentoria"></select>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="row">
+          <label>Captação</label>
+          <div class="radio-row">
+            <button type="button" id="med-org" class="on" onclick="setMedium('organico')">Orgânico</button>
+            <button type="button" id="med-pag" onclick="setMedium('pago')">Pago</button>
+          </div>
+        </div>
+        <div class="row">
+          <label>Material (PDF até ~20MB)</label>
+          <div class="filebox" id="filebox" onclick="document.getElementById('f-file').click()">Clique para escolher o arquivo</div>
+          <input id="f-file" type="file" accept=".pdf,.zip,.doc,.docx,.ppt,.pptx" style="display:none">
+        </div>
+        <div class="row">
+          <label>ou link externo do material</label>
+          <input id="f-url-ext" placeholder="https:// (opcional se enviar arquivo)">
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="row">
+          <label>utm_campaign <span style="text-transform:none">(auto se vazio)</span></label>
+          <input id="f-utm-campaign" placeholder="elite-seduc-am-conhecimentos-pedagogicos">
+        </div>
+        <div class="row">
+          <label>Frase de roteamento da Anne <span style="text-transform:none">(auto se vazio)</span></label>
+          <input id="f-prefill" placeholder="Elite SEDUC-AM">
+          <div class="hintline">Entra na 1ª mensagem do lead p/ a Anne cair no agente certo.</div>
+        </div>
+      </div>
+      <button class="btn" id="btn-save" onclick="save()">GERAR PÁGINA</button>
+      <button class="btn-ghost" id="btn-cancel" style="display:none;margin-left:8px" onclick="resetForm()">Cancelar edição</button>
+      <div id="loading-bar">Enviando material…</div>
+      <div class="msg" id="msg"></div>
+      <div class="linkbox" id="linkbox">
+        <div class="lbl">Link para a descrição do YouTube</div>
+        <code id="link-out"></code>
+        <div class="actions">
+          <button class="btn-ghost" onclick="copyLink()">📋 Copiar link</button>
+          <button class="btn-ghost" onclick="window.open(document.getElementById('link-out').textContent,'_blank')">↗ Abrir página</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Páginas criadas</h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Aula</th><th>Mentoria</th><th>Status</th>
+            <th class="num">Views</th><th class="num">Leads</th><th class="num">Downloads</th><th class="num">Anne</th>
+            <th>Ações</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <p class="muted-note">Views = acessos à página · Leads = cadastros · Anne = cliques no botão da Anne. Exportar baixa o CSV dos leads da página.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "https://dqpxugdhlgafvddavzzp.supabase.co/functions/v1/gerador-paginas";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxcHh1Z2RobGdhZnZkZGF2enpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODQ1NTMsImV4cCI6MjA5Nzc2MDU1M30.nUhYPO3oLUZEXgQCDlRtL-Jawi0nr0l1Z7_z5ecEXvc";
+const PAGE_BASE = "https://fabiomsam-cloud.github.io/aulas-sou-dd1159f8/";
+const $ = (id) => document.getElementById(id);
+
+let TOKEN = new URLSearchParams(location.search).get("k") || localStorage.getItem("gp_token") || "";
+let mentorias = [], paginas = [], editId = null, medium = "organico";
+
+const HEADERS = { "Content-Type": "application/json", "Authorization": "Bearer " + ANON, "apikey": ANON };
+async function api(params, body) {
+  const p = new URLSearchParams({ ...(params || {}), k: TOKEN });
+  const res = await fetch(API + "?" + p, body
+    ? { method: "POST", headers: HEADERS, body: JSON.stringify(body) }
+    : { headers: HEADERS });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "erro");
+  return data;
+}
+
+function saveTok() {
+  TOKEN = $("tok").value.trim();
+  localStorage.setItem("gp_token", TOKEN);
+  boot();
+}
+
+function setMedium(m) {
+  medium = m;
+  $("med-org").classList.toggle("on", m === "organico");
+  $("med-pag").classList.toggle("on", m === "pago");
+}
+
+function slugifyJs(s) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function pageLink(p) {
+  const q = new URLSearchParams({
+    a: p.slug,
+    utm_source: p.utm_source || "youtube-souconcurseiro",
+    utm_medium: p.utm_medium || "organico",
+    utm_campaign: p.utm_campaign || "",
+    utm_term: p.utm_term || "mkt",
+    utm_content: p.utm_content || p.slug,
+  });
+  return PAGE_BASE + "?" + q.toString();
+}
+
+function showMsg(ok, text) {
+  const m = $("msg");
+  m.className = "msg " + (ok ? "ok" : "err");
+  m.textContent = text;
+  m.style.display = "block";
+  setTimeout(() => { m.style.display = "none"; }, 6000);
+}
+
+async function save() {
+  const btn = $("btn-save");
+  const file = $("f-file").files[0];
+  const pagina = {
+    id: editId || undefined,
+    titulo: $("f-titulo").value,
+    disciplina: $("f-disciplina").value,
+    professor: $("f-professor").value,
+    concurso: $("f-concurso").value,
+    product_id: $("f-mentoria").value,
+    utm_medium: medium,
+    utm_campaign: $("f-utm-campaign").value,
+    anne_prefill: $("f-prefill").value,
+    material_url_externa: $("f-url-ext").value,
+  };
+  if (!pagina.titulo || !pagina.disciplina || !pagina.professor || !pagina.concurso || !pagina.product_id) {
+    showMsg(false, "Preencha título, disciplina, professor, concurso e mentoria."); return;
+  }
+  if (!editId && !file && !pagina.material_url_externa) {
+    showMsg(false, "Envie o arquivo do material ou informe o link externo."); return;
+  }
+  btn.disabled = true;
+  try {
+    const r = await api(null, { op: "admin_save", pagina });
+    const saved = r.pagina;
+    if (file) {
+      $("loading-bar").style.display = "block";
+      if (file.size > 20 * 1024 * 1024) throw new Error("arquivo acima de 20MB — use link externo");
+      const b64 = await new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onload = () => res(String(fr.result).split(",")[1]);
+        fr.onerror = rej;
+        fr.readAsDataURL(file);
+      });
+      await api(null, { op: "admin_upload", pagina_id: saved.id, filename: file.name, content_base64: b64, content_type: file.type || "application/pdf" });
+      $("loading-bar").style.display = "none";
+    }
+    showMsg(true, editId ? "Página atualizada!" : "Página criada!");
+    $("link-out").textContent = pageLink(saved);
+    $("linkbox").style.display = "block";
+    resetForm(false);
+    await load();
+  } catch (e) {
+    $("loading-bar").style.display = "none";
+    showMsg(false, e.message);
+  }
+  btn.disabled = false;
+}
+
+function copyLink() {
+  navigator.clipboard.writeText($("link-out").textContent);
+  showMsg(true, "Link copiado!");
+}
+
+function resetForm(clearLink = true) {
+  editId = null;
+  ["f-titulo","f-disciplina","f-professor","f-concurso","f-utm-campaign","f-prefill","f-url-ext"].forEach(id => $(id).value = "");
+  $("f-file").value = "";
+  $("filebox").className = "filebox";
+  $("filebox").textContent = "Clique para escolher o arquivo";
+  setMedium("organico");
+  $("form-title").textContent = "Nova página de aula";
+  $("btn-save").textContent = "GERAR PÁGINA";
+  $("btn-cancel").style.display = "none";
+  if (clearLink) $("linkbox").style.display = "none";
+}
+
+function edit(id) {
+  const p = paginas.find(x => x.id === id);
+  if (!p) return;
+  editId = id;
+  $("f-titulo").value = p.titulo; $("f-disciplina").value = p.disciplina;
+  $("f-professor").value = p.professor; $("f-concurso").value = p.concurso;
+  $("f-mentoria").value = p.product_id || "";
+  $("f-utm-campaign").value = p.utm_campaign || ""; $("f-prefill").value = p.anne_prefill || "";
+  $("f-url-ext").value = p.material_url_externa || "";
+  setMedium(p.utm_medium === "pago" ? "pago" : "organico");
+  if (p.material_filename) { $("filebox").className = "filebox has"; $("filebox").textContent = "✓ " + p.material_filename + " (clique p/ trocar)"; }
+  $("form-title").textContent = "Editando: " + p.titulo;
+  $("btn-save").textContent = "SALVAR ALTERAÇÕES";
+  $("btn-cancel").style.display = "inline-block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function toggleStatus(id) {
+  const p = paginas.find(x => x.id === id);
+  if (!p) return;
+  await api(null, { op: "admin_save", pagina: { ...p, status: p.status === "ativa" ? "pausada" : "ativa" } });
+  await load();
+}
+
+async function del(id) {
+  const p = paginas.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm('Excluir a página "' + p.titulo + '" e seu material? Os leads já captados permanecem no Data Core.')) return;
+  try { await api(null, { op: "admin_delete", id }); await load(); }
+  catch (e) { showMsg(false, e.message); }
+}
+
+async function exportLeads(id) {
+  const p = paginas.find(x => x.id === id);
+  try {
+    const r = await api({ op: "admin_leads", pagina_id: id });
+    const rows = r.leads || [];
+    if (!rows.length) { showMsg(false, "Nenhum lead nesta página ainda."); return; }
+    const cols = ["nome","email","telefone","escolaridade","utm_source","utm_medium","utm_campaign","utm_term","utm_content","baixou_em","clicou_anne_em","created_at"];
+    const csv = [cols.join(";")].concat(rows.map(l => cols.map(c => '"' + String(l[c] ?? "").replace(/"/g, '""') + '"').join(";"))).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "leads-" + (p ? p.slug : id) + ".csv";
+    a.click();
+  } catch (e) { showMsg(false, e.message); }
+}
+
+function copyRow(id) {
+  const p = paginas.find(x => x.id === id);
+  if (!p) return;
+  navigator.clipboard.writeText(pageLink(p));
+  showMsg(true, "Link copiado!");
+}
+
+function render() {
+  const sel = $("f-mentoria");
+  sel.innerHTML = '<option value="">Selecione…</option>' +
+    mentorias.map(m => '<option value="' + m.id + '">' + m.name + "</option>").join("");
+  $("tbody").innerHTML = paginas.map(p => `
+    <tr>
+      <td title="${p.slug}">${p.titulo}<div style="color:var(--muted);font-size:11.5px">${p.disciplina} · Prof. ${p.professor}</div></td>
+      <td>${p.mentoria_nome || "—"}</td>
+      <td><span class="pill ${p.status}">${p.status}</span></td>
+      <td class="num">${p.views}</td>
+      <td class="num">${p.leads}</td>
+      <td class="num">${p.downloads}</td>
+      <td class="num">${p.cliques_anne}</td>
+      <td><div class="tbl-actions">
+        <button class="btn-ghost" onclick="copyRow('${p.id}')">Link</button>
+        <button class="btn-ghost" onclick="edit('${p.id}')">Editar</button>
+        <button class="btn-ghost" onclick="toggleStatus('${p.id}')">${p.status === "ativa" ? "Pausar" : "Ativar"}</button>
+        <button class="btn-ghost" onclick="exportLeads('${p.id}')">Exportar</button>
+        <button class="btn-ghost danger" onclick="del('${p.id}')">Excluir</button>
+      </div></td>
+    </tr>`).join("");
+}
+
+async function load() {
+  const r = await api({ op: "admin_bootstrap" });
+  mentorias = r.mentorias || [];
+  paginas = r.paginas || [];
+  render();
+}
+
+$("f-file").addEventListener("change", () => {
+  const f = $("f-file").files[0];
+  if (f) { $("filebox").className = "filebox has"; $("filebox").textContent = "✓ " + f.name; }
+});
+
+async function boot() {
+  if (!TOKEN) { $("lock").style.display = "block"; $("app").style.display = "none"; return; }
+  try {
+    await load();
+    $("lock").style.display = "none";
+    $("app").style.display = "block";
+  } catch (e) {
+    localStorage.removeItem("gp_token"); TOKEN = "";
+    $("lock").style.display = "block"; $("app").style.display = "none";
+    alert("Token inválido.");
+  }
+}
+boot();
+</script>
+</body>
+</html>

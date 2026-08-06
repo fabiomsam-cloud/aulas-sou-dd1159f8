@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Material da Aula · Sou Concurseiro e Vou Passar</title>
+<meta property="og:title" content="Baixe o material gratuito da aula">
+<meta property="og:description" content="Cadastre-se e receba o material da aula + ajuda da Anne para montar seu plano de estudos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --petrol:#00303D; --petrol-deep:#001d26; --petrol-soft:#0a4254;
+  --cyan:#0088AB; --cyan-bright:#00a8d1; --orange:#FF9800; --orange-deep:#e97f00;
+  --wa:#25D366; --wa-deep:#1cab52;
+  --ink:#12262c; --muted:#5b7076; --line:#e4ebed; --paper:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:"Archivo",system-ui,sans-serif;background:var(--petrol);color:#fff;min-height:100vh;display:flex;flex-direction:column}
+
+/* faixa branca com o logo — mesmo padrão do portal */
+.topbar{background:#fff;padding:14px 20px;display:flex;justify-content:center;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+.topbar img{height:44px;width:auto;display:block}
+
+/* fundo do hero */
+.stage{flex:1;position:relative;overflow:hidden;padding:40px 20px 64px}
+.stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0,168,209,.22), transparent 60%),
+    radial-gradient(700px 380px at -12% 20%, rgba(255,152,0,.10), transparent 55%),
+    linear-gradient(180deg, var(--petrol) 0%, var(--petrol-deep) 100%)}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
+.inner{position:relative;z-index:1;max-width:560px;margin:0 auto}
+
+/* cabeçalho da aula */
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,152,0,.14);border:1px solid rgba(255,152,0,.45);
+  color:#ffb84d;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  padding:7px 14px;border-radius:999px;animation:rise .5s ease both}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--orange);
+  box-shadow:0 0 0 0 rgba(255,152,0,.5);animation:pulse 2s infinite}
+h1{font-weight:900;font-size:clamp(26px,6vw,38px);line-height:1.12;letter-spacing:-.4px;margin:16px 0 14px;animation:rise .5s .08s ease both}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;animation:rise .5s .16s ease both}
+.meta span{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#cfe3e9;
+  font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:8px}
+.meta b{color:#fff;font-weight:700}
+
+/* cartão do formulário */
+.card{background:var(--paper);color:var(--ink);border-radius:18px;padding:28px 26px 24px;
+  box-shadow:0 24px 60px rgba(0,10,14,.45), 0 2px 0 rgba(255,255,255,.06) inset;animation:rise .5s .24s ease both}
+.card h2{font-size:19px;font-weight:800;letter-spacing:-.2px}
+.card .sub{color:var(--muted);font-size:13.5px;margin:6px 0 18px;line-height:1.5}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#39525a;margin:14px 0 6px}
+input,select{width:100%;font-family:inherit;font-size:15.5px;color:var(--ink);background:#f6f9fa;
+  border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;outline:none;transition:.15s;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235b7076' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
+input:focus,select:focus{border-color:var(--cyan);background:#fff;box-shadow:0 0 0 3px rgba(0,136,171,.14)}
+input.err{border-color:#d84343;background:#fff7f7}
+.field-err{display:none;color:#c22f2f;font-size:12px;margin-top:5px;font-weight:600}
+
+.cta{width:100%;margin-top:22px;background:linear-gradient(180deg,var(--orange),var(--orange-deep));border:0;border-radius:12px;
+  color:#fff;font-family:inherit;font-size:16.5px;font-weight:800;letter-spacing:.02em;padding:16px;cursor:pointer;
+  box-shadow:0 10px 24px rgba(255,152,0,.35);transition:.15s}
+.cta:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(255,152,0,.42)}
+.cta:disabled{opacity:.6;cursor:wait;transform:none}
+.lgpd{color:#8aa0a6;font-size:11.5px;line-height:1.5;margin-top:12px;text-align:center}
+.form-msg{display:none;margin-top:14px;background:#fff3f3;border:1px solid #f2c9c9;color:#b02a2a;
+  font-size:13px;font-weight:600;border-radius:10px;padding:11px 14px}
+
+/* estado de sucesso */
+.success{display:none;text-align:center;padding:6px 2px 2px}
+.success .check{width:64px;height:64px;margin:4px auto 14px;border-radius:50%;background:rgba(28,171,82,.12);
+  display:flex;align-items:center;justify-content:center;animation:pop .45s cubic-bezier(.2,1.6,.4,1) both}
+.success h2{font-size:21px}
+.success .sub{margin-bottom:20px}
+.btn-dl,.btn-anne{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:12px;
+  font-family:inherit;font-size:16px;font-weight:800;padding:16px;cursor:pointer;text-decoration:none;color:#fff;transition:.15s}
+.btn-dl{background:linear-gradient(180deg,var(--cyan-bright),var(--cyan));box-shadow:0 10px 24px rgba(0,136,171,.35)}
+.btn-dl:hover{transform:translateY(-1px)}
+.btn-anne{background:linear-gradient(180deg,var(--wa),var(--wa-deep));box-shadow:0 10px 24px rgba(37,211,102,.30);margin-top:12px}
+.btn-anne:hover{transform:translateY(-1px)}
+.btn-note{color:var(--muted);font-size:12.5px;margin-top:14px;line-height:1.5}
+.divider{display:flex;align-items:center;gap:12px;color:#9db3b9;font-size:11.5px;font-weight:700;letter-spacing:.1em;margin:18px 0 6px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* estados de página */
+.loading,.notfound{text-align:center;padding:80px 20px;animation:rise .4s ease both}
+.spinner{width:34px;height:34px;border:3px solid rgba(255,255,255,.2);border-top-color:var(--orange);border-radius:50%;
+  margin:0 auto 16px;animation:spin .8s linear infinite}
+.notfound h1{font-size:24px}
+.notfound p{color:#9fb8bf;margin-top:8px}
+
+footer{position:relative;z-index:1;text-align:center;color:#6f8b93;font-size:12px;padding:18px;background:var(--petrol-deep)}
+footer a{color:#9fc4cf;text-decoration:none}
+
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,152,0,.5)}70%{box-shadow:0 0 0 9px rgba(255,152,0,0)}100%{box-shadow:0 0 0 0 rgba(255,152,0,0)}}
+@media (max-width:420px){.card{padding:22px 18px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar"><img src="assets/logo-scvp.png" alt="Sou Concurseiro e Vou Passar — 16 anos"></div>
+
+<div class="stage">
+  <div class="inner">
+    <div id="loading" class="loading"><div class="spinner"></div><p>Carregando material…</p></div>
+
+    <div id="notfound" class="notfound" style="display:none">
+      <h1>Página não encontrada</h1>
+      <p>Este material não está mais disponível. Confira as aulas mais recentes no canal.</p>
+    </div>
+
+    <div id="conteudo" style="display:none">
+      <span class="badge">Material gratuito da aula</span>
+      <h1 id="titulo"></h1>
+      <div class="meta">
+        <span id="m-disciplina"></span>
+        <span id="m-professor"></span>
+        <span id="m-concurso"></span>
+      </div>
+
+      <div class="card">
+        <form id="form" novalidate>
+          <h2>Baixe o material desta aula</h2>
+          <p class="sub">Preencha seus dados e receba o material agora — e, se quiser, monte seu plano de estudos com a Anne, nossa consultora de aprovação.</p>
+
+          <label for="nome">Nome</label>
+          <input id="nome" type="text" autocomplete="name" placeholder="Seu nome completo" required>
+          <div class="field-err" id="e-nome">Digite seu nome.</div>
+
+          <label for="email">E-mail</label>
+          <input id="email" type="email" autocomplete="email" placeholder="voce@email.com" required>
+          <div class="field-err" id="e-email">Digite um e-mail válido.</div>
+
+          <label for="whats">WhatsApp</label>
+          <input id="whats" type="tel" autocomplete="tel" inputmode="numeric" placeholder="(92) 99999-9999" required>
+          <div class="field-err" id="e-whats">Digite seu WhatsApp com DDD.</div>
+
+          <label for="esc">Escolaridade</label>
+          <select id="esc" required>
+            <option value="" disabled selected>Selecione…</option>
+            <option>Ensino Fundamental</option>
+            <option>Ensino Médio</option>
+            <option>Superior Cursando</option>
+            <option>Superior Completo</option>
+            <option>Pós-graduação</option>
+          </select>
+          <div class="field-err" id="e-esc">Selecione sua escolaridade.</div>
+
+          <button class="cta" id="btn-enviar" type="submit">QUERO O MATERIAL</button>
+          <div class="form-msg" id="form-msg"></div>
+          <p class="lgpd">Ao enviar, você concorda em receber o material e contatos do Grupo SOU sobre seus estudos. Seus dados estão protegidos (LGPD).</p>
+        </form>
+
+        <div class="success" id="success">
+          <div class="check">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#1cab52" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h2>Cadastro confirmado!</h2>
+          <p class="sub">Seu material está liberado. Bons estudos!</p>
+          <button class="btn-dl" id="btn-dl">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            BAIXAR MATERIAL DA AULA
+          </button>
+          <div class="divider">E DEPOIS</div>
+          <a class="btn-anne" id="btn-anne" target="_blank" rel="noopener">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.66 15L2 22l5.16-1.32A10 10 0 1 0 12 2zm5.42 14.13c-.23.65-1.35 1.24-1.86 1.28-.5.05-.97.24-3.27-.68-2.77-1.1-4.53-3.94-4.67-4.12-.13-.18-1.11-1.48-1.11-2.83 0-1.35.7-2.01.96-2.29.25-.27.55-.34.73-.34.18 0 .37 0 .53.01.17.01.4-.06.62.48.23.55.78 1.9.85 2.04.07.14.11.3.02.48-.09.18-.13.29-.27.45-.13.16-.28.35-.4.47-.13.13-.27.28-.12.54.15.27.68 1.12 1.46 1.81 1 .9 1.85 1.17 2.11 1.3.27.14.42.11.58-.07.15-.18.66-.77.84-1.04.18-.27.36-.22.6-.13.25.09 1.58.75 1.85.88.27.14.45.2.52.31.06.12.06.67-.17 1.32z"/></svg>
+            MONTAR MEU PLANO DE ESTUDOS COM A ANNE
+          </a>
+          <p class="btn-note" id="anne-note"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>© Grupo SOU · <a href="https://souconcurseiroevoupassar.com" target="_blank" rel="noopener">souconcurseiroevoupassar.com</a></footer>
+
+<script>
+const API = "https://dqpxugdhlgafvddavzzp.supabase.co/functions/v1/gerador-paginas";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxcHh1Z2RobGdhZnZkZGF2enpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODQ1NTMsImV4cCI6MjA5Nzc2MDU1M30.nUhYPO3oLUZEXgQCDlRtL-Jawi0nr0l1Z7_z5ecEXvc";
+const HEADERS = { "Content-Type": "application/json", "Authorization": "Bearer " + ANON, "apikey": ANON };
+
+const qs = new URLSearchParams(location.search);
+const slug = qs.get("a") || qs.get("aula") || "";
+const $ = (id) => document.getElementById(id);
+let pagina = null, registroId = null, anneHref = null;
+
+const utm = {};
+["utm_source","utm_medium","utm_campaign","utm_term","utm_content"].forEach(k => { if (qs.get(k)) utm[k] = qs.get(k); });
+
+async function api(params, body) {
+  const url = API + (params ? "?" + new URLSearchParams(params) : "");
+  const res = await fetch(url, body
+    ? { method: "POST", headers: HEADERS, body: JSON.stringify(body) }
+    : { headers: HEADERS });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "erro de conexão");
+  return data;
+}
+
+function showSuccess() {
+  $("form").style.display = "none";
+  $("success").style.display = "block";
+  $("btn-anne").href = anneHref || "#";
+  $("anne-note").textContent = "A Anne é a consultora de aprovação do Grupo SOU no WhatsApp — ela monta com você um plano de estudos para " + (pagina.concurso || "o seu concurso") + ".";
+}
+
+async function init() {
+  if (!slug) { $("loading").style.display = "none"; $("notfound").style.display = "block"; return; }
+  try {
+    pagina = await api({ op: "pagina", slug });
+    $("titulo").textContent = pagina.titulo;
+    $("m-disciplina").innerHTML = "📘 <b>" + pagina.disciplina + "</b>";
+    $("m-professor").innerHTML = "Prof. <b>" + pagina.professor + "</b>";
+    $("m-concurso").innerHTML = "🎯 <b>" + pagina.concurso + "</b>";
+    document.title = pagina.titulo + " · Material da Aula · SCVP";
+    $("loading").style.display = "none";
+    $("conteudo").style.display = "block";
+    // já cadastrado neste aparelho? vai direto p/ o material
+    const saved = localStorage.getItem("scvp_aula_" + slug);
+    if (saved) {
+      try { const s = JSON.parse(saved); registroId = s.r; anneHref = s.a; showSuccess(); } catch (_) {}
+    }
+  } catch (e) {
+    $("loading").style.display = "none";
+    $("notfound").style.display = "block";
+  }
+}
+
+// máscara de WhatsApp
+$("whats") && $("whats").addEventListener("input", (ev) => {
+  let d = ev.target.value.replace(/\D/g, "").slice(0, 11);
+  let out = "";
+  if (d.length > 0) out = "(" + d.slice(0, 2);
+  if (d.length >= 3) out += ") " + d.slice(2, d.length >= 11 ? 7 : 6);
+  if (d.length >= (d.length >= 11 ? 8 : 7)) out += "-" + d.slice(d.length >= 11 ? 7 : 6);
+  ev.target.value = out;
+});
+
+function invalid(id, errId, bad) {
+  $(id).classList.toggle("err", bad);
+  $(errId).style.display = bad ? "block" : "none";
+  return bad;
+}
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const nome = $("nome").value.trim();
+  const email = $("email").value.trim();
+  const whats = $("whats").value.replace(/\D/g, "");
+  const esc = $("esc").value;
+  let bad = false;
+  bad = invalid("nome", "e-nome", nome.length < 2) || bad;
+  bad = invalid("email", "e-email", !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) || bad;
+  bad = invalid("whats", "e-whats", whats.length < 10) || bad;
+  bad = invalid("esc", "e-esc", !esc) || bad;
+  if (bad) return;
+
+  const btn = $("btn-enviar");
+  btn.disabled = true; btn.textContent = "ENVIANDO…";
+  $("form-msg").style.display = "none";
+  try {
+    const r = await api(null, { op: "lead", slug, nome, email, telefone: whats, escolaridade: esc, utm });
+    registroId = r.registro_id; anneHref = r.anne_url;
+    localStorage.setItem("scvp_aula_" + slug, JSON.stringify({ r: registroId, a: anneHref }));
+    showSuccess();
+  } catch (e) {
+    $("form-msg").textContent = e.message === "whatsapp inválido — use DDD + número"
+      ? "WhatsApp inválido — confira o DDD e o número." : "Não foi possível enviar. Tente novamente.";
+    $("form-msg").style.display = "block";
+  }
+  btn.disabled = false; btn.textContent = "QUERO O MATERIAL";
+});
+
+$("btn-dl").addEventListener("click", async () => {
+  const b = $("btn-dl");
+  b.disabled = true;
+  try {
+    const r = await api(null, { op: "download", registro_id: registroId });
+    const a = document.createElement("a");
+    a.href = r.download_url; a.rel = "noopener";
+    document.body.appendChild(a); a.click(); a.remove();
+  } catch (e) { alert("Material temporariamente indisponível. Tente de novo em instantes."); }
+  b.disabled = false;
+});
+
+$("btn-anne").addEventListener("click", () => {
+  if (registroId) api(null, { op: "anne_click", registro_id: registroId }).catch(() => {});
+});
+
+init();
+</script>
+</body>
+</html>
