@@ -140,10 +140,30 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
           <input id="f-url-ext" placeholder="https:// (opcional se enviar arquivo)">
         </div>
       </div>
-      <div class="grid2">
+      <div style="margin:4px 0 10px;color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">UTMs personalizadas — auto se em branco</div>
+      <div class="grid3">
         <div class="row">
-          <label>utm_campaign <span style="text-transform:none">(auto se vazio)</span></label>
-          <input id="f-utm-campaign" placeholder="elite-seduc-am-conhecimentos-pedagogicos">
+          <label>utm_source</label>
+          <input id="f-utm-source" placeholder="auto: youtube-souconcurseiro">
+        </div>
+        <div class="row">
+          <label>utm_medium</label>
+          <input id="f-utm-medium" placeholder="auto: usa a Captação acima">
+          <div class="hintline">Se preencher, vence os botões Orgânico/Pago.</div>
+        </div>
+        <div class="row">
+          <label>utm_campaign</label>
+          <input id="f-utm-campaign" placeholder="auto: mentoria + disciplina">
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="row">
+          <label>utm_term</label>
+          <input id="f-utm-term" placeholder="auto: mkt">
+        </div>
+        <div class="row">
+          <label>utm_content</label>
+          <input id="f-utm-content" placeholder="auto: slug da página">
         </div>
         <div class="row">
           <label>Frase de roteamento da Anne <span style="text-transform:none">(auto se vazio)</span></label>
@@ -249,8 +269,11 @@ async function save() {
     professor: $("f-professor").value,
     concurso: $("f-concurso").value,
     product_id: $("f-mentoria").value,
-    utm_medium: medium,
+    utm_source: $("f-utm-source").value,
+    utm_medium: $("f-utm-medium").value.trim() || medium,
     utm_campaign: $("f-utm-campaign").value,
+    utm_term: $("f-utm-term").value,
+    utm_content: $("f-utm-content").value,
     anne_prefill: $("f-prefill").value,
     material_url_externa: $("f-url-ext").value,
   };
@@ -295,7 +318,7 @@ function copyLink() {
 
 function resetForm(clearLink = true) {
   editId = null;
-  ["f-titulo","f-disciplina","f-professor","f-concurso","f-utm-campaign","f-prefill","f-url-ext"].forEach(id => $(id).value = "");
+  ["f-titulo","f-disciplina","f-professor","f-concurso","f-utm-source","f-utm-medium","f-utm-campaign","f-utm-term","f-utm-content","f-prefill","f-url-ext"].forEach(id => $(id).value = "");
   $("f-file").value = "";
   $("filebox").className = "filebox";
   $("filebox").textContent = "Clique para escolher o arquivo";
@@ -313,9 +336,18 @@ function edit(id) {
   $("f-titulo").value = p.titulo; $("f-disciplina").value = p.disciplina;
   $("f-professor").value = p.professor; $("f-concurso").value = p.concurso;
   $("f-mentoria").value = p.product_id || "";
+  $("f-utm-source").value = p.utm_source === "youtube-souconcurseiro" ? "" : (p.utm_source || "");
   $("f-utm-campaign").value = p.utm_campaign || ""; $("f-prefill").value = p.anne_prefill || "";
+  $("f-utm-term").value = p.utm_term === "mkt" ? "" : (p.utm_term || "");
+  $("f-utm-content").value = p.utm_content === p.slug ? "" : (p.utm_content || "");
   $("f-url-ext").value = p.material_url_externa || "";
-  setMedium(p.utm_medium === "pago" ? "pago" : "organico");
+  if (p.utm_medium === "pago" || p.utm_medium === "organico") {
+    $("f-utm-medium").value = "";
+    setMedium(p.utm_medium);
+  } else {
+    $("f-utm-medium").value = p.utm_medium || "";
+    setMedium("organico");
+  }
   if (p.material_filename) { $("filebox").className = "filebox has"; $("filebox").textContent = "✓ " + p.material_filename + " (clique p/ trocar)"; }
   $("form-title").textContent = "Editando: " + p.titulo;
   $("btn-save").textContent = "SALVAR ALTERAÇÕES";
