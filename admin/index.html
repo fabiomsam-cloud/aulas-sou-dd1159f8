@@ -73,6 +73,11 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
 .tbl-actions{display:flex;gap:6px;flex-wrap:wrap}
 .tbl-wrap{overflow-x:auto}
 .muted-note{color:var(--muted);font-size:12px;margin-top:10px}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:4px;width:fit-content;margin-bottom:18px}
+.tabs button{border:0;background:transparent;color:var(--ink-2);font-family:var(--body);font-size:13.5px;font-weight:700;
+  padding:10px 18px;border-radius:9px;cursor:pointer;transition:.15s}
+.tabs button:hover{color:var(--ink)}
+.tabs button.on{background:var(--gold);color:#161204}
 .lock{max-width:420px;margin:120px auto;text-align:center}
 .lock input{margin:14px 0}
 #loading-bar{display:none;color:var(--muted);font-size:12.5px;margin-top:8px}
@@ -96,6 +101,12 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
       <button class="btn-ghost" onclick="load()">↻ Atualizar</button>
     </header>
 
+    <div class="tabs">
+      <button id="tab-paginas" class="on" onclick="setTab('paginas')">📄 Páginas de aula</button>
+      <button id="tab-redirects" onclick="setTab('redirects')">💬 Redirects Anne</button>
+    </div>
+
+    <div id="sec-paginas">
     <div class="card">
       <h2 id="form-title">Nova página de aula</h2>
       <div class="grid2">
@@ -199,6 +210,91 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
       </div>
       <p class="muted-note">Views = acessos à página · Leads = cadastros · Anne = cliques no botão da Anne. Exportar baixa o CSV dos leads da página.</p>
     </div>
+    </div><!-- /sec-paginas -->
+
+    <div id="sec-redirects" style="display:none">
+    <div class="card">
+      <h2 id="r-form-title">Novo redirect para a Anne</h2>
+      <div class="grid3">
+        <div class="row">
+          <label>Nome (interno)</label>
+          <input id="r-nome" placeholder="Ex.: Post blog SEDUC-AM julho">
+        </div>
+        <div class="row">
+          <label>Ação (aparece para o lead)</label>
+          <input id="r-acao" placeholder="Ex.: Monte seu plano de estudos para a SEDUC-AM">
+        </div>
+        <div class="row">
+          <label>Mentoria Elite</label>
+          <select id="r-mentoria"></select>
+        </div>
+      </div>
+      <div class="row">
+        <label>Canal (preenche o utm_source)</label>
+        <div class="radio-row" style="max-width:520px">
+          <button type="button" data-src="blog-souconcurseiro" onclick="setCanal(this)">Blog</button>
+          <button type="button" data-src="instagram-souconcurseiro" class="on" onclick="setCanal(this)">Instagram</button>
+          <button type="button" data-src="youtube-souconcurseiro" onclick="setCanal(this)">YouTube</button>
+        </div>
+      </div>
+      <div style="margin:4px 0 10px;color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">UTMs personalizadas — auto se em branco</div>
+      <div class="grid3">
+        <div class="row">
+          <label>utm_source</label>
+          <input id="r-utm-source" placeholder="auto: canal acima">
+        </div>
+        <div class="row">
+          <label>utm_medium</label>
+          <input id="r-utm-medium" placeholder="auto: organico">
+        </div>
+        <div class="row">
+          <label>utm_campaign</label>
+          <input id="r-utm-campaign" placeholder="auto: mentoria + nome">
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="row">
+          <label>utm_term</label>
+          <input id="r-utm-term" placeholder="auto: mkt">
+        </div>
+        <div class="row">
+          <label>utm_content</label>
+          <input id="r-utm-content" placeholder="auto: slug do link">
+        </div>
+        <div class="row">
+          <label>Frase de roteamento da Anne <span style="text-transform:none">(auto se vazio)</span></label>
+          <input id="r-prefill" placeholder="Elite SEDUC-AM">
+          <div class="hintline">Entra na 1ª mensagem do lead p/ a Anne cair no agente certo.</div>
+        </div>
+      </div>
+      <button class="btn" id="r-btn-save" onclick="saveRedirect()">GERAR LINK</button>
+      <button class="btn-ghost" id="r-btn-cancel" style="display:none;margin-left:8px" onclick="resetRedirectForm()">Cancelar edição</button>
+      <div class="msg" id="r-msg"></div>
+      <div class="linkbox" id="r-linkbox">
+        <div class="lbl">Link para o blog / Instagram</div>
+        <code id="r-link-out"></code>
+        <div class="actions">
+          <button class="btn-ghost" onclick="copyRedirectOut()">📋 Copiar link</button>
+          <button class="btn-ghost" onclick="window.open(document.getElementById('r-link-out').textContent,'_blank')">↗ Abrir página</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Redirects criados</h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Redirect</th><th>Mentoria</th><th>Status</th>
+            <th class="num">Cliques</th><th class="num">Cadastros</th><th class="num">Conversão</th>
+            <th>Ações</th>
+          </tr></thead>
+          <tbody id="r-tbody"></tbody>
+        </table>
+      </div>
+      <p class="muted-note">Cliques = acessos ao link · Cadastros = leads que preencheram e foram para o WhatsApp da Anne. Exportar baixa o CSV dos leads.</p>
+    </div>
+    </div><!-- /sec-redirects -->
   </div>
 </div>
 
@@ -209,7 +305,23 @@ const PAGE_BASE = "https://fabiomsam-cloud.github.io/aulas-sou-dd1159f8/";
 const $ = (id) => document.getElementById(id);
 
 let TOKEN = new URLSearchParams(location.search).get("k") || localStorage.getItem("gp_token") || "";
-let mentorias = [], paginas = [], editId = null, medium = "organico";
+let mentorias = [], paginas = [], redirects = [], editId = null, editRedirectId = null, medium = "organico";
+
+function setTab(t) {
+  document.getElementById("sec-paginas").style.display = t === "paginas" ? "block" : "none";
+  document.getElementById("sec-redirects").style.display = t === "redirects" ? "block" : "none";
+  document.getElementById("tab-paginas").classList.toggle("on", t === "paginas");
+  document.getElementById("tab-redirects").classList.toggle("on", t === "redirects");
+}
+
+function setCanal(btn) {
+  document.querySelectorAll('#sec-redirects .radio-row button').forEach(b => b.classList.remove("on"));
+  btn.classList.add("on");
+}
+function canalSource() {
+  const on = document.querySelector('#sec-redirects .radio-row button.on');
+  return on ? on.dataset.src : "instagram-souconcurseiro";
+}
 
 const HEADERS = { "Content-Type": "application/json", "Authorization": "Bearer " + ANON, "apikey": ANON };
 async function api(params, body) {
@@ -393,6 +505,151 @@ function copyRow(id) {
   showMsg(true, "Link copiado!");
 }
 
+function redirectLink(r) {
+  const q = new URLSearchParams({
+    a: r.slug,
+    utm_source: r.utm_source || "", utm_medium: r.utm_medium || "",
+    utm_campaign: r.utm_campaign || "", utm_term: r.utm_term || "",
+    utm_content: r.utm_content || r.slug,
+  });
+  return PAGE_BASE + "r/?" + q.toString();
+}
+
+function showRMsg(ok, text) {
+  const m = $("r-msg");
+  m.className = "msg " + (ok ? "ok" : "err");
+  m.textContent = text;
+  m.style.display = "block";
+  setTimeout(() => { m.style.display = "none"; }, 6000);
+}
+
+async function saveRedirect() {
+  const btn = $("r-btn-save");
+  const redirect = {
+    id: editRedirectId || undefined,
+    nome: $("r-nome").value,
+    acao: $("r-acao").value,
+    product_id: $("r-mentoria").value,
+    utm_source: $("r-utm-source").value.trim() || canalSource(),
+    utm_medium: $("r-utm-medium").value,
+    utm_campaign: $("r-utm-campaign").value,
+    utm_term: $("r-utm-term").value,
+    utm_content: $("r-utm-content").value,
+    anne_prefill: $("r-prefill").value,
+  };
+  if (!redirect.nome || !redirect.acao || !redirect.product_id) {
+    showRMsg(false, "Preencha nome, ação e mentoria."); return;
+  }
+  btn.disabled = true;
+  try {
+    const r = await api(null, { op: "redirect_save", redirect });
+    showRMsg(true, editRedirectId ? "Redirect atualizado!" : "Link gerado!");
+    $("r-link-out").textContent = redirectLink(r.redirect);
+    $("r-linkbox").style.display = "block";
+    resetRedirectForm(false);
+    await load();
+  } catch (e) { showRMsg(false, e.message); }
+  btn.disabled = false;
+}
+
+function copyRedirectOut() {
+  navigator.clipboard.writeText($("r-link-out").textContent);
+  showRMsg(true, "Link copiado!");
+}
+
+function resetRedirectForm(clearLink = true) {
+  editRedirectId = null;
+  ["r-nome","r-acao","r-utm-source","r-utm-medium","r-utm-campaign","r-utm-term","r-utm-content","r-prefill"].forEach(id => $(id).value = "");
+  $("r-form-title").textContent = "Novo redirect para a Anne";
+  $("r-btn-save").textContent = "GERAR LINK";
+  $("r-btn-cancel").style.display = "none";
+  if (clearLink) $("r-linkbox").style.display = "none";
+}
+
+function editRedirect(id) {
+  const r = redirects.find(x => x.id === id);
+  if (!r) return;
+  editRedirectId = id;
+  $("r-nome").value = r.nome; $("r-acao").value = r.acao;
+  $("r-mentoria").value = r.product_id || "";
+  const preset = document.querySelector('#sec-redirects .radio-row button[data-src="' + r.utm_source + '"]');
+  document.querySelectorAll('#sec-redirects .radio-row button').forEach(b => b.classList.remove("on"));
+  if (preset) { preset.classList.add("on"); $("r-utm-source").value = ""; }
+  else { $("r-utm-source").value = r.utm_source || ""; }
+  $("r-utm-medium").value = r.utm_medium === "organico" ? "" : (r.utm_medium || "");
+  $("r-utm-campaign").value = r.utm_campaign || "";
+  $("r-utm-term").value = r.utm_term === "mkt" ? "" : (r.utm_term || "");
+  $("r-utm-content").value = r.utm_content === r.slug ? "" : (r.utm_content || "");
+  $("r-prefill").value = r.anne_prefill || "";
+  $("r-form-title").textContent = "Editando: " + r.nome;
+  $("r-btn-save").textContent = "SALVAR ALTERAÇÕES";
+  $("r-btn-cancel").style.display = "inline-block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function toggleRedirect(id) {
+  const r = redirects.find(x => x.id === id);
+  if (!r) return;
+  await api(null, { op: "redirect_save", redirect: { ...r, status: r.status === "ativa" ? "pausada" : "ativa" } });
+  await load();
+}
+
+async function delRedirect(id) {
+  const r = redirects.find(x => x.id === id);
+  if (!r) return;
+  if (!confirm('Excluir o redirect "' + r.nome + '"? Os leads já captados permanecem no Data Core.')) return;
+  try { await api(null, { op: "redirect_delete", id }); await load(); }
+  catch (e) { showRMsg(false, e.message); }
+}
+
+async function exportRedirectLeads(id) {
+  const r = redirects.find(x => x.id === id);
+  try {
+    const resp = await api({ op: "redirect_leads", redirect_id: id });
+    const rows = resp.leads || [];
+    if (!rows.length) { showRMsg(false, "Nenhum lead neste redirect ainda."); return; }
+    const cols = ["nome","telefone","utm_source","utm_medium","utm_campaign","utm_term","utm_content","created_at"];
+    const csv = [cols.join(";")].concat(rows.map(l => cols.map(c => '"' + String(l[c] ?? "").replace(/"/g, '""') + '"').join(";"))).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "leads-redirect-" + (r ? r.slug : id) + ".csv";
+    a.click();
+  } catch (e) { showRMsg(false, e.message); }
+}
+
+function copyRedirectRow(id) {
+  const r = redirects.find(x => x.id === id);
+  if (!r) return;
+  navigator.clipboard.writeText(redirectLink(r));
+  showRMsg(true, "Link copiado!");
+}
+
+function renderRedirects() {
+  const sel = $("r-mentoria");
+  sel.innerHTML = '<option value="">Selecione…</option>' +
+    mentorias.map(m => '<option value="' + m.id + '">' + m.name + "</option>").join("");
+  $("r-tbody").innerHTML = redirects.map(r => {
+    const conv = r.views > 0 ? Math.round(100 * r.cadastros / r.views) + "%" : "—";
+    return `
+    <tr>
+      <td title="${r.slug}">${r.nome}<div style="color:var(--muted);font-size:11.5px">${r.acao}</div></td>
+      <td>${r.mentoria_nome || "—"}</td>
+      <td><span class="pill ${r.status}">${r.status}</span></td>
+      <td class="num">${r.views}</td>
+      <td class="num">${r.cadastros}</td>
+      <td class="num">${conv}</td>
+      <td><div class="tbl-actions">
+        <button class="btn-ghost" onclick="copyRedirectRow('${r.id}')">Link</button>
+        <button class="btn-ghost" onclick="editRedirect('${r.id}')">Editar</button>
+        <button class="btn-ghost" onclick="toggleRedirect('${r.id}')">${r.status === "ativa" ? "Pausar" : "Ativar"}</button>
+        <button class="btn-ghost" onclick="exportRedirectLeads('${r.id}')">Exportar</button>
+        <button class="btn-ghost danger" onclick="delRedirect('${r.id}')">Excluir</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+}
+
 function render() {
   const sel = $("f-mentoria");
   sel.innerHTML = '<option value="">Selecione…</option>' +
@@ -420,7 +677,9 @@ async function load() {
   const r = await api({ op: "admin_bootstrap" });
   mentorias = r.mentorias || [];
   paginas = r.paginas || [];
+  redirects = r.redirects || [];
   render();
+  renderRedirects();
 }
 
 $("f-file").addEventListener("change", () => {

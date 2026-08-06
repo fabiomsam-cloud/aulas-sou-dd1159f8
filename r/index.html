@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fale com a Anne · Sou Concurseiro e Vou Passar</title>
+<meta property="og:title" content="Fale com a Anne no WhatsApp">
+<meta property="og:description" content="Monte seu plano de estudos com a consultora de aprovação do Grupo SOU.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --petrol:#00303D; --petrol-deep:#001d26;
+  --cyan:#0088AB; --cyan-bright:#00a8d1; --orange:#FF9800;
+  --wa:#25D366; --wa-deep:#1cab52;
+  --ink:#12262c; --muted:#5b7076; --line:#e4ebed;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Archivo",system-ui,sans-serif;background:var(--petrol);color:#fff;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#fff;padding:14px 20px;display:flex;justify-content:center;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+.topbar img{height:44px;width:auto;display:block}
+.stage{flex:1;position:relative;overflow:hidden;padding:44px 20px 64px;display:flex;align-items:flex-start;justify-content:center}
+.stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(37,211,102,.14), transparent 60%),
+    radial-gradient(700px 380px at -12% 20%, rgba(0,168,209,.14), transparent 55%),
+    linear-gradient(180deg, var(--petrol) 0%, var(--petrol-deep) 100%)}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
+.inner{position:relative;z-index:1;max-width:480px;width:100%}
+.avatar-badge{display:flex;align-items:center;gap:10px;margin-bottom:16px;animation:rise .5s ease both}
+.avatar-badge .dot{width:10px;height:10px;border-radius:50%;background:var(--wa);box-shadow:0 0 0 0 rgba(37,211,102,.5);animation:pulse 2s infinite}
+.avatar-badge span{color:#a9e8c3;font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-weight:900;font-size:clamp(24px,5.6vw,32px);line-height:1.15;letter-spacing:-.4px;margin-bottom:22px;animation:rise .5s .08s ease both}
+.card{background:#fff;color:var(--ink);border-radius:18px;padding:26px 24px 22px;
+  box-shadow:0 24px 60px rgba(0,10,14,.45);animation:rise .5s .16s ease both}
+.card .sub{color:var(--muted);font-size:13.5px;line-height:1.55;margin-bottom:6px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#39525a;margin:14px 0 6px}
+input{width:100%;font-family:inherit;font-size:15.5px;color:var(--ink);background:#f6f9fa;
+  border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;outline:none;transition:.15s;-webkit-appearance:none}
+input:focus{border-color:var(--wa);background:#fff;box-shadow:0 0 0 3px rgba(37,211,102,.16)}
+input.err{border-color:#d84343;background:#fff7f7}
+.field-err{display:none;color:#c22f2f;font-size:12px;margin-top:5px;font-weight:600}
+.cta{width:100%;margin-top:20px;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(180deg,var(--wa),var(--wa-deep));border:0;border-radius:12px;
+  color:#fff;font-family:inherit;font-size:16px;font-weight:800;padding:16px;cursor:pointer;
+  box-shadow:0 10px 24px rgba(37,211,102,.32);transition:.15s}
+.cta:hover{transform:translateY(-1px)}
+.cta:disabled{opacity:.6;cursor:wait;transform:none}
+.lgpd{color:#8aa0a6;font-size:11.5px;line-height:1.5;margin-top:12px;text-align:center}
+.form-msg{display:none;margin-top:14px;background:#fff3f3;border:1px solid #f2c9c9;color:#b02a2a;
+  font-size:13px;font-weight:600;border-radius:10px;padding:11px 14px}
+.going{display:none;text-align:center;padding:14px 4px 8px}
+.going .spinner{width:34px;height:34px;border:3px solid rgba(0,48,61,.12);border-top-color:var(--wa);border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
+.going h2{font-size:19px;margin-bottom:6px}
+.going p{color:var(--muted);font-size:13.5px;line-height:1.5}
+.going a{color:var(--cyan);font-weight:700}
+.loading,.notfound{text-align:center;padding:60px 10px;animation:rise .4s ease both}
+.spinner-w{width:34px;height:34px;border:3px solid rgba(255,255,255,.2);border-top-color:var(--wa);border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite}
+.notfound h1{font-size:22px}
+.notfound p{color:#9fb8bf;margin-top:8px}
+footer{position:relative;z-index:1;text-align:center;color:#6f8b93;font-size:12px;padding:18px;background:var(--petrol-deep)}
+footer a{color:#9fc4cf;text-decoration:none}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,.5)}70%{box-shadow:0 0 0 9px rgba(37,211,102,0)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}}
+</style>
+</head>
+<body>
+<div class="topbar"><img src="../assets/logo-scvp.png" alt="Sou Concurseiro e Vou Passar — 16 anos"></div>
+
+<div class="stage">
+  <div class="inner">
+    <div id="loading" class="loading"><div class="spinner-w"></div><p>Carregando…</p></div>
+
+    <div id="notfound" class="notfound" style="display:none">
+      <h1>Link não encontrado</h1>
+      <p>Este link não está mais ativo. Conheça nossos cursos no portal.</p>
+    </div>
+
+    <div id="conteudo" style="display:none">
+      <div class="avatar-badge"><span class="dot"></span><span>Anne · Consultora de aprovação</span></div>
+      <h1 id="acao"></h1>
+
+      <div class="card">
+        <form id="form" novalidate>
+          <p class="sub">Me diga seu nome e WhatsApp e eu te levo direto para a conversa com a Anne.</p>
+
+          <label for="nome">Nome</label>
+          <input id="nome" type="text" autocomplete="name" placeholder="Seu nome" required>
+          <div class="field-err" id="e-nome">Digite seu nome.</div>
+
+          <label for="whats">WhatsApp</label>
+          <input id="whats" type="tel" autocomplete="tel" inputmode="numeric" placeholder="(92) 99999-9999" required>
+          <div class="field-err" id="e-whats">Digite seu WhatsApp com DDD.</div>
+
+          <button class="cta" id="btn-ir" type="submit">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.66 15L2 22l5.16-1.32A10 10 0 1 0 12 2zm5.42 14.13c-.23.65-1.35 1.24-1.86 1.28-.5.05-.97.24-3.27-.68-2.77-1.1-4.53-3.94-4.67-4.12-.13-.18-1.11-1.48-1.11-2.83 0-1.35.7-2.01.96-2.29.25-.27.55-.34.73-.34.18 0 .37 0 .53.01.17.01.4-.06.62.48.23.55.78 1.9.85 2.04.07.14.11.3.02.48-.09.18-.13.29-.27.45-.13.16-.28.35-.4.47-.13.13-.27.28-.12.54.15.27.68 1.12 1.46 1.81 1 .9 1.85 1.17 2.11 1.3.27.14.42.11.58-.07.15-.18.66-.77.84-1.04.18-.27.36-.22.6-.13.25.09 1.58.75 1.85.88.27.14.45.2.52.31.06.12.06.67-.17 1.32z"/></svg>
+            IR PARA O WHATSAPP DA ANNE
+          </button>
+          <div class="form-msg" id="form-msg"></div>
+          <p class="lgpd">Ao continuar, você concorda em receber contatos do Grupo SOU sobre seus estudos. Seus dados estão protegidos (LGPD).</p>
+        </form>
+
+        <div class="going" id="going">
+          <div class="spinner"></div>
+          <h2>Abrindo o WhatsApp da Anne…</h2>
+          <p>Se não abrir sozinho, <a id="going-link" href="#">toque aqui</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>© Grupo SOU · <a href="https://souconcurseiroevoupassar.com" target="_blank" rel="noopener">souconcurseiroevoupassar.com</a></footer>
+
+<script>
+const API = "https://dqpxugdhlgafvddavzzp.supabase.co/functions/v1/gerador-paginas";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxcHh1Z2RobGdhZnZkZGF2enpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODQ1NTMsImV4cCI6MjA5Nzc2MDU1M30.nUhYPO3oLUZEXgQCDlRtL-Jawi0nr0l1Z7_z5ecEXvc";
+const HEADERS = { "Content-Type": "application/json", "Authorization": "Bearer " + ANON, "apikey": ANON };
+
+const qs = new URLSearchParams(location.search);
+const slug = qs.get("a") || "";
+const $ = (id) => document.getElementById(id);
+
+const utm = {};
+["utm_source","utm_medium","utm_campaign","utm_term","utm_content"].forEach(k => { if (qs.get(k)) utm[k] = qs.get(k); });
+
+async function api(params, body) {
+  const url = API + (params ? "?" + new URLSearchParams(params) : "");
+  const res = await fetch(url, body
+    ? { method: "POST", headers: HEADERS, body: JSON.stringify(body) }
+    : { headers: HEADERS });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "erro de conexão");
+  return data;
+}
+
+function goAnne(url) {
+  $("form").style.display = "none";
+  $("going").style.display = "block";
+  $("going-link").href = url;
+  setTimeout(() => { window.location.href = url; }, 600);
+}
+
+async function init() {
+  if (!slug) { $("loading").style.display = "none"; $("notfound").style.display = "block"; return; }
+  try {
+    const r = await api({ op: "redirect", slug });
+    $("acao").textContent = r.acao;
+    document.title = r.acao + " · Anne · SCVP";
+    $("loading").style.display = "none";
+    $("conteudo").style.display = "block";
+    const saved = localStorage.getItem("scvp_redir_" + slug);
+    if (saved) { try { goAnne(JSON.parse(saved).a); } catch (_) {} }
+  } catch (e) {
+    $("loading").style.display = "none";
+    $("notfound").style.display = "block";
+  }
+}
+
+$("whats").addEventListener("input", (ev) => {
+  let d = ev.target.value.replace(/\D/g, "").slice(0, 11);
+  let out = "";
+  if (d.length > 0) out = "(" + d.slice(0, 2);
+  if (d.length >= 3) out += ") " + d.slice(2, d.length >= 11 ? 7 : 6);
+  if (d.length >= (d.length >= 11 ? 8 : 7)) out += "-" + d.slice(d.length >= 11 ? 7 : 6);
+  ev.target.value = out;
+});
+
+function invalid(id, errId, bad) {
+  $(id).classList.toggle("err", bad);
+  $(errId).style.display = bad ? "block" : "none";
+  return bad;
+}
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const nome = $("nome").value.trim();
+  const whats = $("whats").value.replace(/\D/g, "");
+  let bad = false;
+  bad = invalid("nome", "e-nome", nome.length < 2) || bad;
+  bad = invalid("whats", "e-whats", whats.length < 10) || bad;
+  if (bad) return;
+
+  const btn = $("btn-ir");
+  btn.disabled = true;
+  $("form-msg").style.display = "none";
+  try {
+    const r = await api(null, { op: "redirect_lead", slug, nome, telefone: whats, utm });
+    localStorage.setItem("scvp_redir_" + slug, JSON.stringify({ a: r.anne_url }));
+    goAnne(r.anne_url);
+  } catch (e) {
+    $("form-msg").textContent = e.message === "whatsapp inválido — use DDD + número"
+      ? "WhatsApp inválido — confira o DDD e o número." : "Não foi possível enviar. Tente novamente.";
+    $("form-msg").style.display = "block";
+    btn.disabled = false;
+  }
+});
+
+init();
+</script>
+</body>
+</html>
