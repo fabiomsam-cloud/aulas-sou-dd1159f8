@@ -118,6 +118,13 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
     <div id="sec-paginas">
     <div class="card">
       <h2 id="form-title">Nova página de aula</h2>
+      <div class="row" style="max-width:560px">
+        <label>Tipo de página</label>
+        <div class="radio-row">
+          <button type="button" id="tipo-material" class="on" onclick="setTipo('material')">📥 Entregar material</button>
+          <button type="button" id="tipo-captura" onclick="setTipo('captura')">🔗 Redirecionar para link</button>
+        </div>
+      </div>
       <div class="grid2">
         <div class="row">
           <label>Título da aula</label>
@@ -150,7 +157,7 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
             <button type="button" id="med-pag" onclick="setMedium('pago')">Pago</button>
           </div>
         </div>
-        <div class="row" style="grid-column:span 2">
+        <div class="row" id="mats-wrap" style="grid-column:span 2">
           <label>Materiais da aula — cada um vira um botão de download</label>
           <div class="filebox" id="filebox" onclick="document.getElementById('f-file').click()">+ Adicionar arquivo(s) · PDF até ~20MB cada</div>
           <input id="f-file" type="file" multiple accept=".pdf,.zip,.doc,.docx,.ppt,.pptx,.xls,.xlsx" style="display:none">
@@ -159,6 +166,11 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
             <button type="button" class="btn-ghost" onclick="addUrlMat()">+ Link</button>
           </div>
           <div id="mat-list" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+        <div class="row" id="redir-wrap" style="grid-column:span 2;display:none">
+          <label>Link de destino após o cadastro</label>
+          <input id="f-redirect-url" placeholder="https://www.youtube.com/playlist?list=…">
+          <div class="hintline">O lead se cadastra e é levado direto para esse link (playlist, grupo, página…). A página também pergunta se ele já é aluno da mentoria.</div>
         </div>
       </div>
       <div style="margin:4px 0 10px;color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">UTMs personalizadas — auto se em branco</div>
@@ -316,7 +328,15 @@ const $ = (id) => document.getElementById(id);
 
 let TOKEN = new URLSearchParams(location.search).get("k") || localStorage.getItem("gp_token") || "";
 let mentorias = [], paginas = [], redirects = [], editId = null, editRedirectId = null, medium = "organico";
-let materiaisByPagina = {}, pendMats = [];
+let materiaisByPagina = {}, pendMats = [], tipoPagina = "material";
+
+function setTipo(t) {
+  tipoPagina = t;
+  $("tipo-material").classList.toggle("on", t === "material");
+  $("tipo-captura").classList.toggle("on", t === "captura");
+  $("mats-wrap").style.display = t === "material" ? "block" : "none";
+  $("redir-wrap").style.display = t === "captura" ? "block" : "none";
+}
 
 function renderMats() {
   const list = $("mat-list");
@@ -400,7 +420,7 @@ function setMedium(m) {
 }
 
 function slugifyJs(s) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
@@ -439,14 +459,20 @@ async function save() {
     utm_term: $("f-utm-term").value,
     utm_content: $("f-utm-content").value,
     anne_prefill: $("f-prefill").value,
+    tipo: tipoPagina,
+    redirect_url: $("f-redirect-url").value.trim(),
   };
   if (!pagina.titulo || !pagina.disciplina || !pagina.professor || !pagina.concurso || !pagina.product_id) {
     showMsg(false, "Preencha título, disciplina, professor, concurso e mentoria."); return;
   }
+  if (tipoPagina === "captura" && !/^https?:\/\//.test(pagina.redirect_url)) {
+    showMsg(false, "Informe o link de destino (https://…) para a página de redirecionamento."); return;
+  }
   const existentes = editId ? (materiaisByPagina[editId] || []).length : 0;
-  if (!existentes && !pendMats.length) {
+  if (tipoPagina === "material" && !existentes && !pendMats.length) {
     showMsg(false, "Adicione pelo menos um material (arquivo ou link externo)."); return;
   }
+  if (tipoPagina === "captura") pendMats = [];
   for (const m of pendMats) {
     if (m.tipo === "file" && m.file.size > 20 * 1024 * 1024) {
       showMsg(false, '"' + m.file.name + '" passa de 20MB — use link externo para este material.'); return;
@@ -494,8 +520,10 @@ function resetForm(clearLink = true) {
   editId = null;
   ["f-titulo","f-disciplina","f-professor","f-concurso","f-utm-source","f-utm-medium","f-utm-campaign","f-utm-term","f-utm-content","f-prefill","f-url-ext"].forEach(id => $(id).value = "");
   $("f-file").value = "";
+  $("f-redirect-url").value = "";
   pendMats = [];
   renderMats();
+  setTipo("material");
   setMedium("organico");
   $("form-title").textContent = "Nova página de aula";
   $("btn-save").textContent = "GERAR PÁGINA";
@@ -516,6 +544,9 @@ function edit(id) {
   $("f-utm-content").value = p.utm_content === p.slug ? "" : (p.utm_content || "");
   $("f-url-ext").value = "";
   pendMats = [];
+  const meta = p.metadata || {};
+  setTipo(meta.tipo === "captura" ? "captura" : "material");
+  $("f-redirect-url").value = meta.redirect_url || "";
   if (p.utm_medium === "pago" || p.utm_medium === "organico") {
     $("f-utm-medium").value = "";
     setMedium(p.utm_medium);
@@ -719,7 +750,7 @@ function render() {
     mentorias.map(m => '<option value="' + m.id + '">' + m.name + "</option>").join("");
   $("tbody").innerHTML = paginas.map(p => `
     <tr>
-      <td title="${p.slug}">${p.titulo}<div style="color:var(--muted);font-size:11.5px">${p.disciplina} · Prof. ${p.professor}</div></td>
+      <td title="${p.slug}">${p.titulo}<div style="color:var(--muted);font-size:11.5px">${(p.metadata && p.metadata.tipo === "captura") ? "🔗 redirecionamento · " : ""}${p.disciplina} · Prof. ${p.professor}</div></td>
       <td>${p.mentoria_nome || "—"}</td>
       <td><span class="pill ${p.status}">${p.status}</span></td>
       <td class="num">${p.views}</td>
