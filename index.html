@@ -274,6 +274,8 @@ async function init() {
       $("form").querySelector("h2").textContent = "Cadastre-se para assistir às aulas";
       $("form").querySelector(".sub").textContent = "Preencha seus dados e receba agora o acesso às aulas gratuitas.";
       $("btn-enviar").textContent = "QUERO ASSISTIR ÀS AULAS";
+    }
+    if (pagina.perguntar_aluno) {
       $("aluno-wrap").style.display = "block";
       if (pagina.mentoria) $("aluno-label").textContent = "Você já é aluno da " + pagina.mentoria + "?";
     }
@@ -313,13 +315,14 @@ $("form").addEventListener("submit", async (ev) => {
   const whats = $("whats").value.replace(/\D/g, "");
   const esc = $("esc").value;
   const captura = pagina && pagina.tipo === "captura";
+  const askAluno = pagina && pagina.perguntar_aluno;
   const aluno = $("aluno").value;
   let bad = false;
   bad = invalid("nome", "e-nome", nome.length < 2) || bad;
   bad = invalid("email", "e-email", !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) || bad;
   bad = invalid("whats", "e-whats", whats.length < 10) || bad;
   bad = invalid("esc", "e-esc", !esc) || bad;
-  if (captura) bad = invalid("aluno", "e-aluno", !aluno) || bad;
+  if (askAluno) bad = invalid("aluno", "e-aluno", !aluno) || bad;
   if (bad) return;
 
   const btn = $("btn-enviar");
@@ -328,7 +331,7 @@ $("form").addEventListener("submit", async (ev) => {
   $("form-msg").style.display = "none";
   try {
     const payload = { op: "lead", slug, nome, email, telefone: whats, escolaridade: esc, utm };
-    if (captura) payload.aluno_mentoria = aluno;
+    if (askAluno) payload.aluno_mentoria = aluno;
     const r = await api(null, payload);
     registroId = r.registro_id; anneHref = r.anne_url;
     if (r.redirect_url) redirectHref = r.redirect_url;

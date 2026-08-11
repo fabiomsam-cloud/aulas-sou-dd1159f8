@@ -118,11 +118,19 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
     <div id="sec-paginas">
     <div class="card">
       <h2 id="form-title">Nova página de aula</h2>
-      <div class="row" style="max-width:560px">
-        <label>Tipo de página</label>
-        <div class="radio-row">
-          <button type="button" id="tipo-material" class="on" onclick="setTipo('material')">📥 Entregar material</button>
-          <button type="button" id="tipo-captura" onclick="setTipo('captura')">🔗 Redirecionar para link</button>
+      <div style="display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap">
+        <div class="row" style="min-width:340px">
+          <label>Tipo de página</label>
+          <div class="radio-row">
+            <button type="button" id="tipo-material" class="on" onclick="setTipo('material')">📥 Entregar material</button>
+            <button type="button" id="tipo-captura" onclick="setTipo('captura')">🔗 Redirecionar para link</button>
+          </div>
+        </div>
+        <div class="row">
+          <label class="chk-row" style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;color:var(--ink-2);cursor:pointer;letter-spacing:0;margin:0;padding:10px 0">
+            <input type="checkbox" id="f-perguntar-aluno" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
+            Perguntar se o lead já é aluno da mentoria
+          </label>
         </div>
       </div>
       <div class="grid2">
@@ -251,12 +259,20 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
           <select id="r-mentoria"></select>
         </div>
       </div>
-      <div class="row">
-        <label>Canal (preenche o utm_source)</label>
-        <div class="radio-row" style="max-width:520px">
-          <button type="button" data-src="blog-souconcurseiro" onclick="setCanal(this)">Blog</button>
-          <button type="button" data-src="instagram-souconcurseiro" class="on" onclick="setCanal(this)">Instagram</button>
-          <button type="button" data-src="youtube-souconcurseiro" onclick="setCanal(this)">YouTube</button>
+      <div style="display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap">
+        <div class="row" style="min-width:340px">
+          <label>Canal (preenche o utm_source)</label>
+          <div class="radio-row" style="max-width:520px">
+            <button type="button" data-src="blog-souconcurseiro" onclick="setCanal(this)">Blog</button>
+            <button type="button" data-src="instagram-souconcurseiro" class="on" onclick="setCanal(this)">Instagram</button>
+            <button type="button" data-src="youtube-souconcurseiro" onclick="setCanal(this)">YouTube</button>
+          </div>
+        </div>
+        <div class="row">
+          <label class="chk-row" style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;color:var(--ink-2);cursor:pointer;letter-spacing:0;margin:0;padding:10px 0">
+            <input type="checkbox" id="r-perguntar-aluno" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
+            Perguntar se o lead já é aluno da mentoria
+          </label>
         </div>
       </div>
       <div style="margin:4px 0 10px;color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">UTMs personalizadas — auto se em branco</div>
@@ -330,12 +346,13 @@ let TOKEN = new URLSearchParams(location.search).get("k") || localStorage.getIte
 let mentorias = [], paginas = [], redirects = [], editId = null, editRedirectId = null, medium = "organico";
 let materiaisByPagina = {}, pendMats = [], tipoPagina = "material";
 
-function setTipo(t) {
+function setTipo(t, keepAluno = false) {
   tipoPagina = t;
   $("tipo-material").classList.toggle("on", t === "material");
   $("tipo-captura").classList.toggle("on", t === "captura");
   $("mats-wrap").style.display = t === "material" ? "block" : "none";
   $("redir-wrap").style.display = t === "captura" ? "block" : "none";
+  if (!keepAluno) $("f-perguntar-aluno").checked = t === "captura";
 }
 
 function renderMats() {
@@ -461,6 +478,7 @@ async function save() {
     anne_prefill: $("f-prefill").value,
     tipo: tipoPagina,
     redirect_url: $("f-redirect-url").value.trim(),
+    perguntar_aluno: $("f-perguntar-aluno").checked,
   };
   if (!pagina.titulo || !pagina.disciplina || !pagina.professor || !pagina.concurso || !pagina.product_id) {
     showMsg(false, "Preencha título, disciplina, professor, concurso e mentoria."); return;
@@ -545,7 +563,8 @@ function edit(id) {
   $("f-url-ext").value = "";
   pendMats = [];
   const meta = p.metadata || {};
-  setTipo(meta.tipo === "captura" ? "captura" : "material");
+  setTipo(meta.tipo === "captura" ? "captura" : "material", true);
+  $("f-perguntar-aluno").checked = meta.perguntar_aluno !== undefined ? !!meta.perguntar_aluno : meta.tipo === "captura";
   $("f-redirect-url").value = meta.redirect_url || "";
   if (p.utm_medium === "pago" || p.utm_medium === "organico") {
     $("f-utm-medium").value = "";
@@ -630,6 +649,7 @@ async function saveRedirect() {
     utm_term: $("r-utm-term").value,
     utm_content: $("r-utm-content").value,
     anne_prefill: $("r-prefill").value,
+    perguntar_aluno: $("r-perguntar-aluno").checked,
   };
   if (!redirect.nome || !redirect.acao || !redirect.product_id) {
     showRMsg(false, "Preencha nome, ação e mentoria."); return;
@@ -654,6 +674,7 @@ function copyRedirectOut() {
 function resetRedirectForm(clearLink = true) {
   editRedirectId = null;
   ["r-nome","r-acao","r-utm-source","r-utm-medium","r-utm-campaign","r-utm-term","r-utm-content","r-prefill"].forEach(id => $(id).value = "");
+  $("r-perguntar-aluno").checked = false;
   $("r-form-title").textContent = "Novo redirect para a Anne";
   $("r-btn-save").textContent = "GERAR LINK";
   $("r-btn-cancel").style.display = "none";
@@ -675,6 +696,7 @@ function editRedirect(id) {
   $("r-utm-term").value = r.utm_term === "mkt" ? "" : (r.utm_term || "");
   $("r-utm-content").value = r.utm_content === r.slug ? "" : (r.utm_content || "");
   $("r-prefill").value = r.anne_prefill || "";
+  $("r-perguntar-aluno").checked = !!r.perguntar_aluno;
   $("r-form-title").textContent = "Editando: " + r.nome;
   $("r-btn-save").textContent = "SALVAR ALTERAÇÕES";
   $("r-btn-cancel").style.display = "inline-block";
@@ -702,7 +724,7 @@ async function exportRedirectLeads(id) {
     const resp = await api({ op: "redirect_leads", redirect_id: id });
     const rows = resp.leads || [];
     if (!rows.length) { showRMsg(false, "Nenhum lead neste redirect ainda."); return; }
-    const cols = ["nome","telefone","utm_source","utm_medium","utm_campaign","utm_term","utm_content","created_at"];
+    const cols = ["nome","telefone","aluno_mentoria","utm_source","utm_medium","utm_campaign","utm_term","utm_content","created_at"];
     const csv = [cols.join(";")].concat(rows.map(l => cols.map(c => '"' + String(l[c] ?? "").replace(/"/g, '""') + '"').join(";"))).join("\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
