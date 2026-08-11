@@ -311,7 +311,7 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
 <script>
 const API = "https://dqpxugdhlgafvddavzzp.supabase.co/functions/v1/gerador-paginas";
 const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxcHh1Z2RobGdhZnZkZGF2enpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODQ1NTMsImV4cCI6MjA5Nzc2MDU1M30.nUhYPO3oLUZEXgQCDlRtL-Jawi0nr0l1Z7_z5ecEXvc";
-const PAGE_BASE = "https://fabiomsam-cloud.github.io/aulas-sou-dd1159f8/";
+const PAGE_BASE = "__PAGE_BASE__";
 const $ = (id) => document.getElementById(id);
 
 let TOKEN = new URLSearchParams(location.search).get("k") || localStorage.getItem("gp_token") || "";
@@ -400,7 +400,7 @@ function setMedium(m) {
 }
 
 function slugifyJs(s) {
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
     .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
@@ -551,7 +551,7 @@ async function exportLeads(id) {
     const r = await api({ op: "admin_leads", pagina_id: id });
     const rows = r.leads || [];
     if (!rows.length) { showMsg(false, "Nenhum lead nesta página ainda."); return; }
-    const cols = ["nome","email","telefone","escolaridade","utm_source","utm_medium","utm_campaign","utm_term","utm_content","baixou_em","clicou_anne_em","created_at"];
+    const cols = ["nome","email","telefone","escolaridade","aluno_mentoria","utm_source","utm_medium","utm_campaign","utm_term","utm_content","baixou_em","clicou_anne_em","created_at"];
     const csv = [cols.join(";")].concat(rows.map(l => cols.map(c => '"' + String(l[c] ?? "").replace(/"/g, '""') + '"').join(";"))).join("\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
