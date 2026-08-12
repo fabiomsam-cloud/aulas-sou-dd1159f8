@@ -232,12 +232,13 @@ function showSuccess() {
   $("success").style.display = "block";
   if (pagina && pagina.tipo === "captura") {
     $("success").querySelector("h2").textContent = "Cadastro confirmado!";
-    $("success").querySelector(".sub").textContent = "Suas aulas estão liberadas — você será redirecionado em instantes.";
+    $("success").querySelector(".sub").textContent = pagina.redirect_msg ||
+      "Suas aulas estão liberadas — você será redirecionado em instantes.";
     $("dl-list").style.display = "none";
     $("success").querySelector(".divider").style.display = "none";
     $("anne-note").style.display = "none";
     const btn = $("btn-anne");
-    btn.innerHTML = "ASSISTIR ÀS AULAS AGORA";
+    btn.innerHTML = pagina.redirect_label || "ACESSAR AGORA";
     btn.href = redirectHref || "#";
     if (redirectHref) setTimeout(() => { window.location.href = redirectHref; }, 1800);
     return;
