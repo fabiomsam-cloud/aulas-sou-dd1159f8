@@ -179,6 +179,33 @@ tbody td:first-child{color:var(--ink);font-weight:500;max-width:280px}
           <label>Link de destino após o cadastro</label>
           <input id="f-redirect-url" placeholder="https://www.youtube.com/playlist?list=…">
           <div class="hintline">O lead se cadastra e é levado direto para esse link (playlist, grupo, página…). A página também pergunta se ele já é aluno da mentoria.</div>
+          <div class="grid2" style="margin-top:10px">
+            <div>
+              <label>Mensagem de sucesso <span style="text-transform:none">(auto se vazio)</span></label>
+              <input id="f-redirect-msg" placeholder="auto: Suas aulas estão liberadas — você será redirecionado em instantes.">
+            </div>
+            <div>
+              <label>Texto do botão <span style="text-transform:none">(auto se vazio)</span></label>
+              <input id="f-redirect-label" placeholder="auto: ACESSAR AGORA">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin:4px 0 10px;color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Pixel Meta + qualificação — opcional</div>
+      <div class="grid3">
+        <div class="row">
+          <label>Pixel ID (Meta)</label>
+          <input id="f-pixel" inputmode="numeric" placeholder="Ex.: 639941435037052">
+          <div class="hintline">Com pixel: PageView p/ todos e Lead (browser + CAPI, dedup) SÓ p/ lead qualificado.</div>
+        </div>
+        <div class="row" style="grid-column:span 2">
+          <label>Qualificação</label>
+          <select id="f-qual" onchange="onQualChange()">
+            <option value="">Nenhuma — mantém a escolaridade padrão (todo cadastro gera Lead)</option>
+            <option value="superior">Ensino superior (cursando/completo/pós qualifica)</option>
+            <option value="professor">Vai fazer para Professor? (Sim qualifica)</option>
+          </select>
+          <div class="hintline" id="qual-hint">A pergunta substitui o campo de escolaridade da página. Desqualificado cadastra e é redirecionado normalmente — só não gera Lead no Meta.</div>
         </div>
       </div>
       <div style="margin:4px 0 10px;color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">UTMs personalizadas — auto se em branco</div>
@@ -346,6 +373,48 @@ let TOKEN = new URLSearchParams(location.search).get("k") || localStorage.getIte
 let mentorias = [], paginas = [], redirects = [], editId = null, editRedirectId = null, medium = "organico";
 let materiaisByPagina = {}, pendMats = [], tipoPagina = "material";
 
+// Presets da pergunta qualificadora → JSON gravado em metadata.qualification
+const QUAL_PRESETS = {
+  superior: [{
+    id: "escolaridade", label: "Qual a sua escolaridade?", type: "select",
+    options: [
+      { value: "fundamental", label: "Ensino Fundamental", qualifies: false },
+      { value: "medio", label: "Ensino Médio", qualifies: false },
+      { value: "superior_cursando", label: "Superior Cursando", qualifies: true },
+      { value: "superior_completo", label: "Superior Completo", qualifies: true },
+      { value: "pos", label: "Pós-graduação", qualifies: true },
+    ],
+  }],
+  professor: [{
+    id: "professor", label: "Você vai fazer o concurso para Professor?", type: "select",
+    options: [
+      { value: "sim", label: "Sim, vou fazer para Professor", qualifies: true },
+      { value: "nao", label: "Não, vou fazer para outro cargo", qualifies: false },
+    ],
+  }],
+};
+// Detecta o preset a partir do JSON salvo; "custom" = JSON editado fora do painel (é preservado)
+function qualPresetOf(q) {
+  if (!Array.isArray(q) || !q.length) return "";
+  for (const k of Object.keys(QUAL_PRESETS)) {
+    if (JSON.stringify(QUAL_PRESETS[k]) === JSON.stringify(q)) return k;
+  }
+  return q[0] && q[0].id === "escolaridade" ? "superior" : q[0] && q[0].id === "professor" ? "professor" : "custom";
+}
+function setQualSelect(v) {
+  const sel = $("f-qual");
+  let opt = sel.querySelector('option[value="custom"]');
+  if (v === "custom") {
+    if (!opt) { opt = document.createElement("option"); opt.value = "custom"; opt.textContent = "Personalizada (JSON atual mantido)"; sel.appendChild(opt); }
+  } else if (opt) opt.remove();
+  sel.value = v;
+}
+function onQualChange() {
+  const sel = $("f-qual");
+  const opt = sel.querySelector('option[value="custom"]');
+  if (sel.value !== "custom" && opt) opt.remove();
+}
+
 function setTipo(t, keepAluno = false) {
   tipoPagina = t;
   $("tipo-material").classList.toggle("on", t === "material");
@@ -479,7 +548,16 @@ async function save() {
     tipo: tipoPagina,
     redirect_url: $("f-redirect-url").value.trim(),
     perguntar_aluno: $("f-perguntar-aluno").checked,
+    redirect_msg: $("f-redirect-msg").value.trim(),
+    redirect_label: $("f-redirect-label").value.trim(),
+    pixel_id: $("f-pixel").value.replace(/\D/g, ""),
   };
+  // qualificação: preset → JSON; "custom" → não mexe no JSON salvo
+  const qual = $("f-qual").value;
+  if (qual !== "custom") pagina.qualification = qual ? QUAL_PRESETS[qual] : null;
+  if (pagina.pixel_id && pagina.pixel_id.length < 10) {
+    showMsg(false, "Pixel ID inválido — copie o ID numérico do Gerenciador de Eventos."); return;
+  }
   if (!pagina.titulo || !pagina.disciplina || !pagina.professor || !pagina.concurso || !pagina.product_id) {
     showMsg(false, "Preencha título, disciplina, professor, concurso e mentoria."); return;
   }
@@ -539,6 +617,8 @@ function resetForm(clearLink = true) {
   ["f-titulo","f-disciplina","f-professor","f-concurso","f-utm-source","f-utm-medium","f-utm-campaign","f-utm-term","f-utm-content","f-prefill","f-url-ext"].forEach(id => $(id).value = "");
   $("f-file").value = "";
   $("f-redirect-url").value = "";
+  $("f-redirect-msg").value = ""; $("f-redirect-label").value = "";
+  $("f-pixel").value = ""; setQualSelect("");
   pendMats = [];
   renderMats();
   setTipo("material");
@@ -566,6 +646,10 @@ function edit(id) {
   setTipo(meta.tipo === "captura" ? "captura" : "material", true);
   $("f-perguntar-aluno").checked = meta.perguntar_aluno !== undefined ? !!meta.perguntar_aluno : meta.tipo === "captura";
   $("f-redirect-url").value = meta.redirect_url || "";
+  $("f-redirect-msg").value = meta.redirect_msg || "";
+  $("f-redirect-label").value = meta.redirect_label || "";
+  $("f-pixel").value = meta.pixel_id || "";
+  setQualSelect(qualPresetOf(meta.qualification));
   if (p.utm_medium === "pago" || p.utm_medium === "organico") {
     $("f-utm-medium").value = "";
     setMedium(p.utm_medium);
@@ -772,7 +856,7 @@ function render() {
     mentorias.map(m => '<option value="' + m.id + '">' + m.name + "</option>").join("");
   $("tbody").innerHTML = paginas.map(p => `
     <tr>
-      <td title="${p.slug}">${p.titulo}<div style="color:var(--muted);font-size:11.5px">${(p.metadata && p.metadata.tipo === "captura") ? "🔗 redirecionamento · " : ""}${p.disciplina} · Prof. ${p.professor}</div></td>
+      <td title="${p.slug}">${p.titulo}<div style="color:var(--muted);font-size:11.5px">${(p.metadata && p.metadata.tipo === "captura") ? "🔗 redirecionamento · " : ""}${(p.metadata && p.metadata.pixel_id) ? "📡 pixel " + p.metadata.pixel_id + (p.metadata.qualification ? " · qualif. " + qualPresetOf(p.metadata.qualification) : "") + " · " : ""}${p.disciplina} · Prof. ${p.professor}</div></td>
       <td>${p.mentoria_nome || "—"}</td>
       <td><span class="pill ${p.status}">${p.status}</span></td>
       <td class="num">${p.views}</td>
