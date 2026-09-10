@@ -205,6 +205,7 @@ const qs = new URLSearchParams(location.search);
 const slug = qs.get("a") || qs.get("aula") || "";
 const $ = (id) => document.getElementById(id);
 let pagina = null, registroId = null, anneHref = null, redirectHref = null;
+let desqualificado = false; // regra 10/09: sem link do grupo para desqualificado
 
 // Atribuição: utm_* + fbclid da URL, persistidos 30 dias (padrão do modal blindado).
 // Quem chega pelo anúncio e volta depois sem os parâmetros continua atribuído.
@@ -259,6 +260,16 @@ async function baixar(btn, materialId) {
 function showSuccess() {
   $("form").style.display = "none";
   $("success").style.display = "block";
+  if (pagina && pagina.tipo === "captura" && desqualificado) {
+    $("success").querySelector("h2").textContent = "Cadastro recebido!";
+    $("success").querySelector(".sub").textContent = pagina.desq_msg ||
+      "Obrigado! Este grupo de estudos é exclusivo para o perfil do concurso, mas você continua recebendo nossos conteúdos gratuitos no WhatsApp e no Instagram @souconcurseiro.";
+    $("dl-list").style.display = "none";
+    $("success").querySelector(".divider").style.display = "none";
+    $("anne-note").style.display = "none";
+    $("btn-anne").style.display = "none";
+    return;
+  }
   if (pagina && pagina.tipo === "captura") {
     $("success").querySelector("h2").textContent = "Cadastro confirmado!";
     $("success").querySelector(".sub").textContent = pagina.redirect_msg ||
@@ -412,7 +423,9 @@ $("form").addEventListener("submit", async (ev) => {
     payload.page_url = location.href.split("#")[0];
     const r = await api(null, payload);
     registroId = r.registro_id; anneHref = r.anne_url;
-    if (r.redirect_url) redirectHref = r.redirect_url;
+    // com pergunta qualificadora, o link do grupo vem SÓ na resposta (e só para qualificado)
+    if (quals.length) redirectHref = r.redirect_url || null; else if (r.redirect_url) redirectHref = r.redirect_url;
+    desqualificado = !!r.desqualificado;
     if (r.materiais) pagina.materiais = r.materiais;
     localStorage.setItem("scvp_aula_" + slug, JSON.stringify({ r: registroId, a: anneHref }));
     // Lead no browser SÓ quando o servidor devolve pixel (qualificado + 1ª vez) — mesmo event_id do CAPI
