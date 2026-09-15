@@ -104,6 +104,9 @@ footer a{color:#9fc4cf;text-decoration:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,152,0,.5)}70%{box-shadow:0 0 0 9px rgba(255,152,0,0)}100%{box-shadow:0 0 0 0 rgba(255,152,0,0)}}
 @media (max-width:420px){.card{padding:22px 18px 20px}}
+.btn-grupo{font-size:17px !important;padding:18px 22px !important;animation:pulsa 1.6s ease-in-out infinite}
+@keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.btn-grupo-alt{display:block;margin:12px auto 0;text-align:center;font-size:14px;font-weight:700;color:#1cab52;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -280,7 +283,18 @@ function showSuccess() {
     const btn = $("btn-anne");
     btn.innerHTML = pagina.redirect_label || "ACESSAR AGORA";
     btn.href = redirectHref || "#";
-    if (redirectHref) setTimeout(() => { window.location.href = redirectHref; }, 1800);
+    // Fase 3 (15/09): botão do grupo é o herói da tela + segunda chamada + clique medido (página × Sendflow)
+    const marcaGrupo = (modo) => { if (registroId) api(null, { op: "grupo_click", registro_id: registroId, modo }).catch(() => {}); };
+    btn.classList.add("btn-grupo");
+    btn.addEventListener("click", () => marcaGrupo("click"));
+    if (redirectHref) {
+      const alt = document.createElement("a");
+      alt.className = "btn-grupo-alt"; alt.href = redirectHref; alt.target = "_blank"; alt.rel = "noopener";
+      alt.textContent = "Não abriu? Toque aqui para abrir o grupo no WhatsApp";
+      alt.addEventListener("click", () => marcaGrupo("click"));
+      btn.insertAdjacentElement("afterend", alt);
+      setTimeout(() => { marcaGrupo("auto"); window.location.href = redirectHref; }, 1800);
+    }
     return;
   }
   const mats = (pagina && pagina.materiais) || [];
