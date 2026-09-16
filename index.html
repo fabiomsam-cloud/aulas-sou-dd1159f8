@@ -332,7 +332,8 @@ async function init() {
     }
     if (pagina.perguntar_aluno) {
       $("aluno-wrap").style.display = "block";
-      if (pagina.mentoria) $("aluno-label").textContent = "Você já é aluno da " + pagina.mentoria + "?";
+      if (pagina.aluno_label) $("aluno-label").textContent = pagina.aluno_label;
+      else if (pagina.mentoria) $("aluno-label").textContent = "Você já é aluno da " + pagina.mentoria + "?";
     }
     // Pixel Meta: PageView p/ todos; Lead SÓ quando o servidor aprovar a qualificação.
     if (pagina.pixel_id) {
