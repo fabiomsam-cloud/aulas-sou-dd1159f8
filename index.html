@@ -368,11 +368,10 @@ async function init() {
     }
     $("loading").style.display = "none";
     $("conteudo").style.display = "block";
-    // já cadastrado neste aparelho? vai direto p/ o material
-    const saved = localStorage.getItem("scvp_aula_" + slug);
-    if (saved) {
-      try { const s = JSON.parse(saved); registroId = s.r; anneHref = s.a; showSuccess(); } catch (_) {}
-    }
+    // 17/09 (Fábio): SEM trava de "já cadastrado" — quem volta vê o formulário de novo e recebe o link do grupo
+    // outra vez (a Sendflow já leva quem está no grupo para o grupo dele). A tela "concluído" restaurada do
+    // localStorage não tinha redirectHref e o botão do grupo ficava morto.
+    try { localStorage.removeItem("scvp_aula_" + slug); } catch (_) {}
   } catch (e) {
     $("loading").style.display = "none";
     $("notfound").style.display = "block";
@@ -442,7 +441,6 @@ $("form").addEventListener("submit", async (ev) => {
     if (quals.length) redirectHref = r.redirect_url || null; else if (r.redirect_url) redirectHref = r.redirect_url;
     desqualificado = !!r.desqualificado;
     if (r.materiais) pagina.materiais = r.materiais;
-    localStorage.setItem("scvp_aula_" + slug, JSON.stringify({ r: registroId, a: anneHref }));
     // Lead no browser SÓ quando o servidor devolve pixel (qualificado + 1ª vez) — mesmo event_id do CAPI
     if (r.pixel && window.fbq) {
       fbq("track", "Lead", {}, { eventID: r.pixel.event_id });
