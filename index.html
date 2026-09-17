@@ -209,6 +209,8 @@ const slug = qs.get("a") || qs.get("aula") || "";
 const $ = (id) => document.getElementById(id);
 let pagina = null, registroId = null, anneHref = null, redirectHref = null;
 let desqualificado = false; // regra 10/09: sem link do grupo para desqualificado
+let redirectDesqHref = null, redirectDesqMsg = null; // 17/09: grupo alternativo p/ desqualificado (metadata.redirect_url_desq)
+let redirectDesqHref = null, redirectDesqMsg = null; // 17/09: grupo alternativo p/ desqualificado (metadata.redirect_url_desq)
 
 // Atribuição: utm_* + fbclid da URL, persistidos 30 dias (padrão do modal blindado).
 // Quem chega pelo anúncio e volta depois sem os parâmetros continua atribuído.
@@ -263,6 +265,48 @@ async function baixar(btn, materialId) {
 function showSuccess() {
   $("form").style.display = "none";
   $("success").style.display = "block";
+  if (pagina && pagina.tipo === "captura" && desqualificado && redirectDesqHref) {
+    // 17/09 (Fábio): desqualificado com grupo próprio → mesmo fluxo do grupo (botão herói + link alternativo + redirect)
+    $("success").querySelector("h2").textContent = "Cadastro confirmado!";
+    $("success").querySelector(".sub").textContent = redirectDesqMsg || "Agora entre no seu grupo de estudos no WhatsApp: é lá que as aulas e os materiais gratuitos são liberados.";
+    $("dl-list").style.display = "none";
+    $("success").querySelector(".divider").style.display = "none";
+    $("anne-note").style.display = "none";
+    const btn = $("btn-anne");
+    btn.innerHTML = pagina.redirect_label || "ENTRAR NO GRUPO";
+    btn.href = redirectDesqHref;
+    const marcaGrupo = (modo) => { if (registroId) api(null, { op: "grupo_click", registro_id: registroId, modo }).catch(() => {}); };
+    btn.classList.add("btn-grupo");
+    btn.addEventListener("click", () => marcaGrupo("click"));
+    const alt = document.createElement("a");
+    alt.className = "btn-grupo-alt"; alt.href = redirectDesqHref; alt.target = "_blank"; alt.rel = "noopener";
+    alt.textContent = "Não abriu? Toque aqui para abrir o grupo no WhatsApp";
+    alt.addEventListener("click", () => marcaGrupo("click"));
+    btn.insertAdjacentElement("afterend", alt);
+    setTimeout(() => { marcaGrupo("auto"); window.location.href = redirectDesqHref; }, 1800);
+    return;
+  }
+  if (pagina && pagina.tipo === "captura" && desqualificado && redirectDesqHref) {
+    // 17/09 (Fábio): desqualificado com grupo próprio → mesmo fluxo do grupo (botão herói + link alternativo + redirect)
+    $("success").querySelector("h2").textContent = "Cadastro confirmado!";
+    $("success").querySelector(".sub").textContent = redirectDesqMsg || "Agora entre no seu grupo de estudos no WhatsApp: é lá que as aulas e os materiais gratuitos são liberados.";
+    $("dl-list").style.display = "none";
+    $("success").querySelector(".divider").style.display = "none";
+    $("anne-note").style.display = "none";
+    const btn = $("btn-anne");
+    btn.innerHTML = pagina.redirect_label || "ENTRAR NO GRUPO";
+    btn.href = redirectDesqHref;
+    const marcaGrupo = (modo) => { if (registroId) api(null, { op: "grupo_click", registro_id: registroId, modo }).catch(() => {}); };
+    btn.classList.add("btn-grupo");
+    btn.addEventListener("click", () => marcaGrupo("click"));
+    const alt = document.createElement("a");
+    alt.className = "btn-grupo-alt"; alt.href = redirectDesqHref; alt.target = "_blank"; alt.rel = "noopener";
+    alt.textContent = "Não abriu? Toque aqui para abrir o grupo no WhatsApp";
+    alt.addEventListener("click", () => marcaGrupo("click"));
+    btn.insertAdjacentElement("afterend", alt);
+    setTimeout(() => { marcaGrupo("auto"); window.location.href = redirectDesqHref; }, 1800);
+    return;
+  }
   if (pagina && pagina.tipo === "captura" && desqualificado) {
     $("success").querySelector("h2").textContent = "Cadastro recebido!";
     $("success").querySelector(".sub").textContent = pagina.desq_msg ||
@@ -440,6 +484,8 @@ $("form").addEventListener("submit", async (ev) => {
     // com pergunta qualificadora, o link do grupo vem SÓ na resposta (e só para qualificado)
     if (quals.length) redirectHref = r.redirect_url || null; else if (r.redirect_url) redirectHref = r.redirect_url;
     desqualificado = !!r.desqualificado;
+    redirectDesqHref = r.redirect_url_desq || null; redirectDesqMsg = r.redirect_msg_desq || null;
+    redirectDesqHref = r.redirect_url_desq || null; redirectDesqMsg = r.redirect_msg_desq || null;
     if (r.materiais) pagina.materiais = r.materiais;
     // Lead no browser SÓ quando o servidor devolve pixel (qualificado + 1ª vez) — mesmo event_id do CAPI
     if (r.pixel && window.fbq) {
