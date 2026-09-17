@@ -170,8 +170,8 @@ async function init() {
     }
     $("loading").style.display = "none";
     $("conteudo").style.display = "block";
-    const saved = localStorage.getItem("scvp_redir_" + slug);
-    if (saved) { try { goAnne(JSON.parse(saved).a); } catch (_) {} }
+    // 17/09 (Fábio): sem trava de revisita — sempre mostra o formulário
+    try { localStorage.removeItem("scvp_redir_" + slug); } catch (_) {}
   } catch (e) {
     $("loading").style.display = "none";
     $("notfound").style.display = "block";
@@ -211,7 +211,6 @@ $("form").addEventListener("submit", async (ev) => {
     const payload = { op: "redirect_lead", slug, nome, telefone: whats, utm };
     if (askAluno) payload.aluno_mentoria = aluno;
     const r = await api(null, payload);
-    localStorage.setItem("scvp_redir_" + slug, JSON.stringify({ a: r.anne_url }));
     goAnne(r.anne_url);
   } catch (e) {
     $("form-msg").textContent = e.message === "whatsapp inválido — use DDD + número"
